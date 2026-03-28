@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ProfitPilot - Dashboard</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-item">Home</a>
+      <a href="dashboard.html" class="nav-item active">Dashboard</a>
+      <a href="billing.html" class="nav-item">Billing</a>
+      <a href="inventory.html" class="nav-item">Inventory</a>
+      <a href="tax.html" class="nav-item">Tax Estimator</a>
+      <a href="chatbot.html" class="nav-item">Chatbot</a>
+    </nav>
+    <div class="user-profile">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>Analytics & Reports</h2>
+        <p class="text-muted" style="margin-top: 4px;">Deep-dive charts mapping your business momentum.</p>
+      </div>
+    </div>
+
+    <!-- Top Grid: Charts -->
+    <div class="grid-2">
+      <div class="card">
+        <h3 class="mb-1">Revenue Velocity</h3>
+        <p class="text-muted mb-2" style="font-size: 0.85rem;">Daily sales over time</p>
+        <canvas id="salesChart"></canvas>
+      </div>
+      <div class="card">
+        <h3 class="mb-1">Catalog Performance</h3>
+        <p class="text-muted mb-2" style="font-size: 0.85rem;">Top moving products driving revenue</p>
+        <canvas id="topChart"></canvas>
+      </div>
+    </div>
+
+    <!-- AI Insights Strip -->
+    <div class="grid-3 mt-2" style="margin-top: 24px;">
+        <div class="card" style="border: 1px solid var(--accent-orange);">
+            <h3 class="mb-2 text-red">Critical Alerts Panel</h3>
+            <div id="alert-panel" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+        <div class="card">
+            <h3 class="mb-2 text-green">High Potential Items</h3>
+            <div id="high-potential-panel" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+        <div class="card">
+            <h3 class="mb-2 text-blue">Festival Tracker Widget</h3>
+            <div id="festival-widget" style="display:flex; flex-direction:column; gap:8px;"></div>
+        </div>
+    </div>
+
+    <!-- Procurement Tables -->
+    <div class="grid-2" style="margin-top: 24px;">
+      <div class="card">
+        <h3 class="mb-1 text-yellow">Smart Procurement Suggestions</h3>
+        <p class="text-muted mb-2" style="font-size: 0.85rem;">Algorithmically calculated exact restock targets</p>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Product</th><th>Stock</th><th>Forecast (7d)</th><th>Restock</th></tr>
+                </thead>
+                <tbody id="restock-body"></tbody>
+            </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="mb-1 text-red">Capital Efficiency Warnings</h3>
+        <p class="text-muted mb-2" style="font-size: 0.85rem;">Dead stock tying up operations</p>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th>Product</th><th>Stock</th><th>Last Sold</th></tr>
+                </thead>
+                <tbody id="dead-stock-body"></tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+    
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

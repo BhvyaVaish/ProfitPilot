@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProfitPilot - Tax & Financial Insights</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    .fin-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-weight: 600;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    .fin-badge-green { background: rgba(52,211,153,0.15); color: #34d399; }
+    .fin-badge-red   { background: rgba(239,68,68,0.15);  color: #ef4444; }
+    .fin-badge-yellow{ background: rgba(251,191,36,0.15); color: #fbbf24; }
+
+    .cashflow-bar {
+      height: 8px;
+      border-radius: 99px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.06);
+      margin-top: 8px;
+    }
+    .cashflow-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 1s ease;
+    }
+
+    .tip-card {
+      background: rgba(52,211,153,0.06);
+      border: 1px solid rgba(52,211,153,0.2);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .tip-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .tip-title { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+    .tip-desc  { font-size: 0.83rem; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+
+    .alert-card {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+    .alert-warning { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.25); color: #fbbf24; }
+    .alert-info    { background: rgba(59,130,246,0.1);  border: 1px solid rgba(59,130,246,0.25);  color: #93c5fd; }
+
+    .liability-box {
+      text-align: center;
+      padding: 32px 24px;
+      background: rgba(217,95,54,0.07);
+      border: 2px solid rgba(217,95,54,0.3);
+      border-radius: var(--radius);
+    }
+    .liability-amt {
+      font-size: 3.2rem;
+      font-weight: 700;
+      color: var(--accent-orange);
+      font-family: var(--font-body);
+      line-height: 1;
+    }
+
+    .margin-bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .margin-bar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+    .margin-bar-fill { height: 100%; background: linear-gradient(90deg, #34d399, #10b981); border-radius: 99px; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .grid-3 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      ProfitPilot
+    </div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-item">Home</a>
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="billing.html" class="nav-item">Billing</a>
+      <a href="inventory.html" class="nav-item">Inventory</a>
+      <a href="tax.html" class="nav-item active">Tax Estimator</a>
+      <a href="chatbot.html" class="nav-item">Assistant</a>
+    </nav>
+    <div class="user-profile">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>Tax & Financial Insights</h2>
+        <p class="text-muted" style="margin-top:4px;">How much am I earning, how much do I owe, and how can I reduce it?</p>
+      </div>
+      <button class="btn btn-primary" onclick="loadTaxData()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- SMART ALERTS -->
+    <div id="alert-strip" style="display:flex; flex-direction:column; gap:8px; margin-bottom:24px;"></div>
+
+    <!-- SECTION 1: Financial Summary Cards -->
+    <div class="grid-4" style="margin-bottom:24px;">
+      <div class="card">
+        <div class="card-title text-blue">💰 Total Revenue</div>
+        <div class="card-value" id="val-revenue">₹—</div>
+        <p class="text-muted" style="font-size:0.8rem; margin-top:8px;">Gross sales from all billed transactions.</p>
+      </div>
+      <div class="card">
+        <div class="card-title text-green">💸 Est. Net Profit</div>
+        <div class="card-value text-green" id="val-profit">₹—</div>
+        <p class="text-muted" style="font-size:0.8rem; margin-top:8px;">Revenue minus estimated 70% business costs.</p>
+      </div>
+      <div class="card">
+        <div class="card-title text-yellow">🧾 GST Liability</div>
+        <div class="card-value text-yellow" id="val-gst">₹—</div>
+        <p class="text-muted" style="font-size:0.8rem; margin-top:8px;">Calculated using exact category slabs (5%, 12%, 18%, 28%).</p>
+      </div>
+      <div class="card">
+        <div class="card-title text-red">📊 Income Tax Est.</div>
+        <div class="card-value text-red" id="val-tax">₹—</div>
+        <p class="text-muted" style="font-size:0.8rem; margin-top:8px;">Slab-based tax on estimated annual profit.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2 + 6: Total Liability + Cashflow Snapshot -->
+    <div class="grid-2" style="margin-bottom:24px;">
+      <div class="liability-box">
+        <div class="text-muted" style="font-size:0.85rem; margin-bottom:8px; letter-spacing:0.05em;">TOTAL GOVERNMENT LIABILITY</div>
+        <div class="liability-amt" id="val-total">₹—</div>
+        <p class="text-muted" style="margin-top:12px; font-size:0.85rem;">GST + Income Tax combined. This is what you owe to the government.</p>
+        <div style="display:flex; gap:20px; justify-content:center; margin-top:16px;">
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;">GST</div>
+            <div id="cf-gst" style="font-weight:700; color:#fbbf24;">₹—</div>
+          </div>
+          <div style="width:1px; background:var(--border);"></div>
+          <div>
+            <div class="text-muted" style="font-size:0.75rem;">Income Tax</div>
+            <div id="cf-itax" style="font-weight:700; color:#ef4444;">₹—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="mb-2">📈 Cashflow Snapshot</h3>
+        <p class="text-muted" style="font-size:0.82rem; margin-bottom:16px;">Where does your money come and go?</p>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span class="text-muted" style="font-size:0.85rem;">Revenue</span>
+              <span id="cf-rev" style="font-weight:700; color:#34d399;">₹—</span>
+            </div>
+            <div class="cashflow-bar"><div class="cashflow-fill" id="cf-rev-bar" style="width:100%; background: #34d399;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span class="text-muted" style="font-size:0.85rem;">Est. Expenses (70%)</span>
+              <span id="cf-exp" style="font-weight:700; color:#ef4444;">₹—</span>
+            </div>
+            <div class="cashflow-bar"><div class="cashflow-fill" id="cf-exp-bar" style="width:70%; background: #ef4444;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span class="text-muted" style="font-size:0.85rem;">Net Profit (30%)</span>
+              <span id="cf-pft" style="font-weight:700; color:#fbbf24;">₹—</span>
+            </div>
+            <div class="cashflow-bar"><div class="cashflow-fill" id="cf-pft-bar" style="width:30%; background: #fbbf24;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Tax Saving Suggestions -->
+    <div class="card mb-3" style="margin-bottom:24px;">
+      <h3 class="mb-2 text-green">💡 Smart Tax-Saving Suggestions</h3>
+      <p class="text-muted" style="margin-bottom:16px; font-size:0.85rem;">Legally reduce what you owe — every rupee saved is profit.</p>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div class="tip-card">
+          <div class="tip-icon">🧾</div>
+          <div>
+            <div class="tip-title">Declare Business Expenses (खर्च दिखाएं)</div>
+            <div class="tip-desc">Keep receipts for shop rent, electricity bills, and employee salaries. Each declared expense directly reduces your taxable income and lowers your Income Tax bill.</div>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">🔄</div>
+          <div>
+            <div class="tip-title">Claim GST Input Tax Credit (ITC)</div>
+            <div class="tip-desc">Every time you buy goods from a GST-registered supplier, the GST you paid can be claimed back. This directly offsets your GST liability — potentially saving thousands per month.</div>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">💰</div>
+          <div>
+            <div class="tip-title">Section 80C Investments (निवेश करें)</div>
+            <div class="tip-desc">Invest up to ₹1.5 Lakh annually in PPF, ELSS mutual funds, or NSC. This amount is directly subtracted from your taxable income before calculating Income Tax slabs.</div>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">📋</div>
+          <div>
+            <div class="tip-title">Presumptive Taxation Scheme (Section 44AD)</div>
+            <div class="tip-desc">If your business turnover is under ₹2 Crore, you can declare 8% of turnover as profit under Section 44AD. This can significantly reduce the tax burden vs actual accounting.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 + 5: Product Tables -->
+    <div class="grid-2" style="margin-bottom:24px;">
+      <div class="card">
+        <h3 class="mb-1 text-blue">📊 Profit Margin by Product</h3>
+        <p class="text-muted" style="font-size:0.82rem; margin-bottom:16px;">Which products actually make you money?</p>
+        <table>
+          <thead>
+            <tr><th>Product</th><th>Margin</th><th>Profit/Unit</th></tr>
+          </thead>
+          <tbody id="margin-body"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3 class="mb-1 text-yellow">🧾 Top Tax-Contributing Products</h3>
+        <p class="text-muted" style="font-size:0.82rem; margin-bottom:16px;">Products contributing most to your GST liability.</p>
+        <table>
+          <thead>
+            <tr><th>Product</th><th>Revenue</th><th>GST Owed</th></tr>
+          </thead>
+          <tbody id="tax-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="text-muted" style="font-size:0.78rem; text-align:center; margin-top:8px;">
+      ⚠️ These are estimates based on standard MSME assumptions (70% cost ratio, Indian GST Slabs). Consult a CA for precise filing.
+    </p>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/tax.js"></script>
+</body>
+</html>

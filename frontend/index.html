@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ProfitPilot - Control Center</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <header>
+    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-item active">Home</a>
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="billing.html" class="nav-item">Billing</a>
+      <a href="inventory.html" class="nav-item">Inventory</a>
+      <a href="tax.html" class="nav-item">Tax Estimator</a>
+      <a href="chatbot.html" class="nav-item">Chatbot</a>
+    </nav>
+    <div class="user-profile">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>AI Control Center</h2>
+        <p class="text-muted" id="current-date">Loading date...</p>
+      </div>
+      <button class="btn btn-primary" onclick="loadHomeSummary()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Refresh</button>
+    </div>
+
+    <div class="grid-4 mb-3" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+      <div class="card">
+        <h3 class="mb-1 text-blue">Today Sales</h3>
+        <div class="card-value" id="stat-sales-today">-</div>
+      </div>
+      <div class="card">
+        <h3 class="mb-1 text-yellow">Total Products</h3>
+        <div class="card-value" id="stat-products">-</div>
+      </div>
+      <div class="card">
+        <h3 class="mb-1" style="color: var(--accent-orange);">Low Stock Items</h3>
+        <div class="card-value" id="stat-low-stock">-</div>
+      </div>
+      <div class="card">
+        <h3 class="mb-1 text-red">Out of Stock</h3>
+        <div class="card-value" id="stat-out-stock">-</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card" style="border: 1px solid var(--accent-orange); box-shadow: 0 0 15px rgba(217,95,54,0.1);">
+        <h3 class="mb-2" style="color: var(--accent-orange);">AI Priority Actions</h3>
+        <div id="priority-actions" style="display:flex; flex-direction:column; gap:12px;">
+            <div class="spinner"></div>
+        </div>
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div class="card">
+          <h3 class="mb-2 text-green">Festival Insights</h3>
+          <div id="festival-insights" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3 class="mb-2 text-blue">Mini Insights</h3>
+          <div id="mini-insights" style="display:flex; flex-direction:column; gap:12px;">
+              <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

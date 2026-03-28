@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-surface: rgba(25, 25, 25, 0.4);
+  --bg-card: rgba(25, 25, 25, 0.5);
+  --accent-orange: #d95f36;
+  --accent-blue: #d95f36; /* Remapped so existing logic works */
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+  --accent-red: #ef4444;
+  --text-primary: #f8fafc;
+  --text-muted: #8a8f98;
+  --border: rgba(255, 255, 255, 0.08);
+  --radius: 8px;
+  --shadow: 0 4px 20px rgba(0,0,0,0.15);
+  --font-display: 'JetBrains Mono', monospace;
+  --font-body: 'JetBrains Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(ellipse at top center, rgba(217, 95, 54, 0.15) 0%, var(--bg-primary) 50%);
+  background-color: var(--bg-primary);
+  background-attachment: fixed;
+  background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  background-position: center top;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 { font-weight: 600; letter-spacing: -0.02em; }
+a { color: var(--accent-blue); text-decoration: none; }

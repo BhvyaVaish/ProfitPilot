@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ProfitPilot - Inventory</title>
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    .status-pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .status-ok   { background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid #34d39955; }
+    .status-low  { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid #fbbf2455; }
+    .status-out  { background: rgba(239, 68, 68, 0.15);  color: #ef4444; border: 1px solid #ef444455; }
+
+    .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+    .chip:hover, .chip.active { border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(217,95,54,0.1); }
+
+    .inv-search {
+      flex: 1;
+      min-width: 200px;
+    }
+    .actions-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .modal-label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-muted); }
+    .tbl-action-btn { padding: 4px 10px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      ProfitPilot
+    </div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-item">Home</a>
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="billing.html" class="nav-item">Billing</a>
+      <a href="inventory.html" class="nav-item active">Inventory</a>
+      <a href="tax.html" class="nav-item">Tax Estimator</a>
+      <a href="chatbot.html" class="nav-item">Chatbot</a>
+    </nav>
+    <div class="user-profile">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>Inventory Control</h2>
+        <p class="text-muted" style="margin-top:4px;">What do you have? Manage it here.</p>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn" onclick="openRestockModal()" id="restock-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-.07-5"></path></svg>
+          Add Stock
+        </button>
+        <button class="btn btn-primary" onclick="openAddModal()" id="add-product-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Product
+        </button>
+      </div>
+    </div>
+
+    <!-- Search + Filter Bar -->
+    <div class="card mb-3">
+      <div class="actions-bar">
+        <input type="text" id="search-inv" class="input-control inv-search" placeholder="🔍 Search by product name...">
+        <div class="filter-chips">
+          <span class="chip active" data-filter="all" onclick="setFilter('all', this)">All Products</span>
+          <span class="chip" data-filter="low" onclick="setFilter('low', this)">🟡 Low Stock</span>
+          <span class="chip" data-filter="out" onclick="setFilter('out', this)">🔴 Out of Stock</span>
+          <span class="chip" data-filter="ok" onclick="setFilter('ok', this)">🟢 OK</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Inventory Table -->
+    <div class="card">
+      <div class="table-container">
+        <table id="inventory-table">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th style="text-align:center;">Stock</th>
+              <th>Price</th>
+              <th style="text-align:center;">Status</th>
+              <th style="text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-body">
+            <tr><td colspan="6" style="text-align:center;"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Stats Strip -->
+    <div class="grid-3 mt-2" style="margin-top:20px;">
+      <div class="card" style="text-align:center;">
+        <div class="text-muted" style="font-size:0.82rem; margin-bottom:4px;">TOTAL PRODUCTS</div>
+        <div class="card-value" id="stat-total">-</div>
+      </div>
+      <div class="card" style="text-align:center; border: 1px solid rgba(251,191,36,0.3);">
+        <div class="text-muted" style="font-size:0.82rem; margin-bottom:4px;">LOW STOCK</div>
+        <div class="card-value text-yellow" id="stat-low">-</div>
+      </div>
+      <div class="card" style="text-align:center; border: 1px solid rgba(239,68,68,0.3);">
+        <div class="text-muted" style="font-size:0.82rem; margin-bottom:4px;">OUT OF STOCK</div>
+        <div class="card-value text-red" id="stat-out">-</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ======================= MODALS ======================= -->
+
+  <!-- Add Product Modal -->
+  <div class="modal-overlay" id="add-modal-overlay">
+    <div class="modal">
+      <h3 class="mb-3">Add New Product</h3>
+      <form id="add-form">
+        <div class="mb-2">
+          <label class="modal-label">Product Name *</label>
+          <input type="text" id="p-name" class="input-control" placeholder="e.g. Dove Soap" required>
+        </div>
+        <div class="mb-2">
+          <label class="modal-label">Category *</label>
+          <select id="p-category" class="input-control" required>
+            <option value="general">General</option>
+            <option value="sweets">Sweets</option>
+            <option value="colors">Colors</option>
+            <option value="clothing">Clothing</option>
+            <option value="electronics">Electronics</option>
+            <option value="lights">Lights</option>
+            <option value="gifts">Gifts</option>
+            <option value="drinks">Drinks</option>
+            <option value="snacks">Snacks</option>
+            <option value="dairy">Dairy</option>
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="modal-label">Selling Price (₹) *</label>
+          <input type="number" step="0.01" min="0.01" id="p-price" class="input-control" placeholder="e.g. 45.00" required>
+        </div>
+        <div class="mb-3">
+          <label class="modal-label">Initial Stock (units)</label>
+          <input type="number" min="0" id="p-stock" class="input-control" placeholder="e.g. 100" value="0" required>
+        </div>
+        <div id="add-error" style="color:#ef4444; font-size:0.85rem; margin-bottom:8px; display:none;"></div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn" onclick="closeAddModal()" style="flex:1; justify-content:center;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="flex:1; justify-content:center;">Add Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Stock (Restock) Modal -->
+  <div class="modal-overlay" id="restock-modal-overlay">
+    <div class="modal">
+      <h3 class="mb-3">Add Stock to Existing Product</h3>
+      <div class="mb-2">
+        <label class="modal-label">Select Product *</label>
+        <select id="restock-select" class="input-control"></select>
+      </div>
+      <div class="mb-3">
+        <label class="modal-label">Quantity to Add *</label>
+        <input type="number" min="1" id="restock-qty" class="input-control" placeholder="e.g. 50">
+      </div>
+      <div id="restock-error" style="color:#ef4444; font-size:0.85rem; margin-bottom:8px; display:none;"></div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn" onclick="closeRestockModal()" style="flex:1; justify-content:center;">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="handleAddStock()" style="flex:1; justify-content:center;">Add Stock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Product Modal -->
+  <div class="modal-overlay" id="edit-modal-overlay">
+    <div class="modal">
+      <h3 class="mb-3">Edit Product</h3>
+      <input type="hidden" id="edit-id">
+      <div class="mb-2">
+        <label class="modal-label">Product Name</label>
+        <input type="text" id="edit-name" class="input-control">
+      </div>
+      <div class="mb-3">
+        <label class="modal-label">Selling Price (₹)</label>
+        <input type="number" step="0.01" min="0.01" id="edit-price" class="input-control">
+      </div>
+      <div id="edit-error" style="color:#ef4444; font-size:0.85rem; margin-bottom:8px; display:none;"></div>
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn" onclick="closeEditModal()" style="flex:1; justify-content:center;">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="handleEditProduct()" style="flex:1; justify-content:center;">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/inventory.js"></script>
+</body>
+</html>
