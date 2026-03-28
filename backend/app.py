@@ -34,8 +34,7 @@ def index():
 if __name__ == '__main__':
     if not os.path.exists(os.path.join(os.path.dirname(__file__), 'stockpilot.db')):
         init_db()
-    
-    init_db()
+
     
     try:
         from services.alert_service import refresh_alerts

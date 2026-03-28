@@ -51,7 +51,8 @@ function renderInventory(data) {
                 <td>₹${parseFloat(p.price).toFixed(2)}</td>
                 <td style="text-align:center;"><span class="status-pill ${pillClass}">${pillLabel}</span></td>
                 <td style="text-align:center; display:flex; gap:6px; justify-content:center;">
-                    <button class="btn tbl-action-btn" onclick="openEditModal(${p.id}, '${escJs(p.name)}', ${p.price})">Edit</button>
+                    <button class="btn btn-primary tbl-action-btn" onclick="openRestockModal(${p.id})">Restock</button>
+                    <button class="btn tbl-action-btn" onclick="openEditModal(${p.id}, '${escJs(p.name)}', ${p.price}, ${p.stock})">Edit</button>
                     <button class="btn btn-danger tbl-action-btn" onclick="deleteProduct(${p.id}, '${escJs(p.name)}')">Delete</button>
                 </td>
             </tr>
@@ -129,17 +130,20 @@ async function handleAddProduct(e) {
         if(res.error) { showErr(errBox, res.error); return; }
         showToast(`✅ "${name}" added to inventory!`, 'success');
         closeAddModal();
-        loadInventory();
+        await loadInventory();
     } catch(err) {
         showErr(errBox, err.message || 'Failed to add product.');
     }
 }
 
 // ─── ADD STOCK (RESTOCK) MODAL ────────────────────────────────────────────
-function openRestockModal() {
+function openRestockModal(preselectId = null) {
     document.getElementById('restock-modal-overlay').classList.add('active');
     document.getElementById('restock-error').style.display = 'none';
     document.getElementById('restock-qty').value = '';
+    if (preselectId) {
+        document.getElementById('restock-select').value = preselectId;
+    }
 }
 function closeRestockModal() {
     document.getElementById('restock-modal-overlay').classList.remove('active');
@@ -160,17 +164,20 @@ async function handleAddStock() {
         if(res.error) { showErr(errBox, res.error); return; }
         showToast(`✅ Added ${qty} units. New stock: ${res.new_stock}`, 'success');
         closeRestockModal();
-        loadInventory();
+        await loadInventory();
     } catch(err) {
         showErr(errBox, err.message || 'Failed to update stock.');
     }
 }
 
 // ─── EDIT PRODUCT MODAL ───────────────────────────────────────────────────
-function openEditModal(id, name, price) {
+function openEditModal(id, name, price, stock) {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-price').value = price;
+    if (stock !== undefined) {
+        document.getElementById('edit-stock').value = stock;
+    }
     document.getElementById('edit-error').style.display = 'none';
     document.getElementById('edit-modal-overlay').classList.add('active');
 }
@@ -185,16 +192,18 @@ async function handleEditProduct() {
     const id    = document.getElementById('edit-id').value;
     const name  = document.getElementById('edit-name').value.trim();
     const price = parseFloat(document.getElementById('edit-price').value);
+    const stock = parseInt(document.getElementById('edit-stock').value);
 
     if(!name) { showErr(errBox, 'Name cannot be empty.'); return; }
     if(price <= 0 || isNaN(price)) { showErr(errBox, 'Price must be > 0.'); return; }
+    if(stock < 0 || isNaN(stock)) { showErr(errBox, 'Stock cannot be negative.'); return; }
 
     try {
-        const res = await apiCall(`/api/inventory/${id}`, 'PUT', { name, price });
+        const res = await apiCall(`/api/inventory/${id}`, 'PUT', { name, price, stock });
         if(res.error) { showErr(errBox, res.error); return; }
         showToast('✅ Product updated.', 'success');
         closeEditModal();
-        loadInventory();
+        await loadInventory();
     } catch(err) {
         showErr(errBox, err.message || 'Update failed.');
     }
@@ -211,7 +220,7 @@ async function deleteProduct(id, name) {
             return;
         }
         showToast(`🗑️ "${name}" deleted.`, 'success');
-        loadInventory();
+        await loadInventory();
     } catch(err) {
         showToast(`⚠️ ${err.message || 'Delete failed.'}`, 'error');
     }

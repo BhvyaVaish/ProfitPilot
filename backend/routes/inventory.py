@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from database import get_connection
 from models import insert_product, update_product_stock, delete_product
+from services.alert_service import refresh_alerts
+
 
 inventory_bp = Blueprint('inventory', __name__)
 
@@ -60,6 +62,7 @@ def add_product():
         conn.close()
             
         product_id = insert_product(data['name'], data['category'], float(data['price']), int(data['stock']))
+        refresh_alerts()
         return jsonify({"success": True, "product_id": product_id}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -86,6 +89,8 @@ def add_stock(product_id):
         conn.commit()
         conn.close()
         
+        refresh_alerts()
+        
         return jsonify({"success": True, "new_stock": new_stock}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -108,6 +113,11 @@ def update_product_route(product_id):
             updates.append("name = ?")
             params.append(data['name'].strip())
             
+        if 'stock' in data and int(data['stock']) >= 0:
+            updates.append("stock = ?")
+            params.append(int(data['stock']))
+
+            
         if not updates:
             conn.close()
             return jsonify({"error": "Nothing valid to update"}), 400
@@ -117,6 +127,8 @@ def update_product_route(product_id):
         conn.execute(query, params)
         conn.commit()
         conn.close()
+        
+        refresh_alerts()
         
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -135,6 +147,7 @@ def remove_product_route(product_id):
             
         delete_product(product_id)
         conn.close()
+        refresh_alerts()
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
