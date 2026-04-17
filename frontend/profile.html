@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage your ProfitPilot business profile and account settings.">
+  <title>ProfitPilot - My Profile</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <div class="onboarding-page">
+    <div class="onboarding-container" style="max-width:620px;">
+      <div class="auth-logo">
+        <h1>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #f97316;">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            <polyline points="17 6 23 6 23 12"></polyline>
+          </svg>
+          My Profile
+        </h1>
+      </div>
+
+      <div class="onboarding-card" id="profile-card" style="display:none;">
+        <div class="auth-error" id="profile-error"></div>
+        <div class="auth-success" id="profile-success"></div>
+
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="profile-avatar" id="profile-avatar">--</div>
+          <div>
+            <div style="font-size:1.1rem; font-weight:700; color:#fff;" id="profile-display-name">Loading...</div>
+            <div style="font-size:0.85rem; color:rgba(255,255,255,0.5);" id="profile-email">-</div>
+            <div id="profile-msme-badge" class="msme-badge msme-micro" style="margin-top:6px; font-size:0.8rem; padding:4px 10px;">
+              Micro Enterprise
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Details -->
+        <div style="margin-bottom:24px;">
+          <div style="font-weight:600; color:rgba(255,255,255,0.7); font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">Personal Details</div>
+          <div class="profile-grid">
+            <div class="auth-field">
+              <label>Full Name</label>
+              <input type="text" class="auth-input" id="prof-name">
+            </div>
+            <div class="auth-field">
+              <label>Phone</label>
+              <input type="tel" class="auth-input" id="prof-phone">
+            </div>
+            <div class="auth-field">
+              <label>City</label>
+              <input type="text" class="auth-input" id="prof-city">
+            </div>
+            <div class="auth-field">
+              <label>State</label>
+              <input type="text" class="auth-input" id="prof-state">
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Details -->
+        <div style="margin-bottom:24px;">
+          <div style="font-weight:600; color:rgba(255,255,255,0.7); font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">Business Details</div>
+          <div class="profile-grid">
+            <div class="auth-field">
+              <label>Business Name</label>
+              <input type="text" class="auth-input" id="prof-business-name">
+            </div>
+            <div class="auth-field">
+              <label>GSTIN</label>
+              <input type="text" class="auth-input" id="prof-gstin" style="text-transform:uppercase">
+            </div>
+            <div class="auth-field">
+              <label>PAN Number</label>
+              <input type="text" class="auth-input" id="prof-pan" style="text-transform:uppercase">
+            </div>
+            <div class="auth-field">
+              <label>Business Address</label>
+              <input type="text" class="auth-input" id="prof-business-address">
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Classification -->
+        <div style="margin-bottom:24px;">
+          <div style="font-weight:600; color:rgba(255,255,255,0.7); font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">Business Classification</div>
+          <div class="profile-grid">
+            <div class="auth-field">
+              <label>Business Type</label>
+              <select class="auth-select" id="prof-biz-type">
+                <option value="trading">Trading</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="services">Services</option>
+              </select>
+            </div>
+            <div class="auth-field">
+              <label>Business Sector</label>
+              <select class="auth-select" id="prof-biz-sector">
+                <option value="grocery">Grocery Store</option>
+                <option value="electronics">Electronics</option>
+                <option value="clothing">Clothing / Textiles</option>
+                <option value="general">General Store</option>
+                <option value="food_beverages">Food & Beverages</option>
+                <option value="pharmacy">Pharmacy</option>
+                <option value="hardware">Hardware</option>
+                <option value="stationery">Stationery</option>
+                <option value="cosmetics">Cosmetics / Beauty</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="auth-field">
+              <label>Turnover Range</label>
+              <select class="auth-select" id="prof-turnover">
+                <option value="below_1cr">Below ₹1 Crore</option>
+                <option value="1_5cr">₹1 - 5 Crore</option>
+                <option value="5_50cr">₹5 - 50 Crore</option>
+                <option value="50_250cr">₹50 - 250 Crore</option>
+              </select>
+            </div>
+            <div class="auth-field">
+              <label>Payment Mode</label>
+              <select class="auth-select" id="prof-payment-mode">
+                <option value="mixed">Mixed (Cash + Digital)</option>
+                <option value="digital">Mostly Digital (UPI / Card)</option>
+                <option value="cash">Mostly Cash</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="step-buttons">
+          <a href="/" class="auth-btn auth-btn-secondary" style="text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center;">← Dashboard</a>
+          <button class="auth-btn auth-btn-primary" id="save-profile-btn" onclick="saveProfile()">Save Changes</button>
+        </div>
+
+        <div style="text-align:center; margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
+          <button onclick="signOutUser()" style="background:none; border:none; color:#ef4444; font-size:0.88rem; cursor:pointer; font-weight:600; font-family:var(--font-body);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:text-bottom;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

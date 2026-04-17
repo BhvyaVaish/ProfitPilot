@@ -1,4 +1,21 @@
-flask==3.0.0
-flask-cors==4.0.0
-requests==2.31.0
-python-dotenv==1.0.0
+# ProfitPilot — Python dependencies
+# Python >= 3.10 required
+# Install locally: pip install -r requirements.txt
+
+# ── Web framework ──────────────────────────────────────────────────────────
+flask>=3.0.0,<4.0.0
+flask-cors>=4.0.0,<5.0.0
+
+# ── Environment & HTTP ─────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# ── Firebase Authentication ────────────────────────────────────────────────
+firebase-admin>=6.2.0,<7.0.0
+
+# ── PostgreSQL driver (used on Vercel / Supabase) ──────────────────────────
+# Ignored automatically when DATABASE_URL is not set (SQLite is used instead)
+psycopg2-binary>=2.9.0
+
+# ── Google GenAI (Gemini) — festival demand prediction ─────────────────────
+google-genai>=1.0.0

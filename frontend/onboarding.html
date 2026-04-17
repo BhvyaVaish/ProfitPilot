@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Set up your ProfitPilot business profile - one-time onboarding for personalized insights.">
+  <title>ProfitPilot - Business Setup</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+  <div class="onboarding-page">
+    <div class="onboarding-container">
+      <div class="auth-logo">
+        <h1>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #f97316;">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+            <polyline points="17 6 23 6 23 12"></polyline>
+          </svg>
+          Welcome to ProfitPilot
+        </h1>
+        <p>Let's set up your business profile for personalized insights</p>
+      </div>
+
+      <div class="onboarding-card">
+        <!-- Progress -->
+        <div class="progress-steps">
+          <div class="progress-dot active" id="dot-1"></div>
+          <div class="progress-dot" id="dot-2"></div>
+          <div class="progress-dot" id="dot-3"></div>
+        </div>
+
+        <div class="auth-error" id="onboard-error"></div>
+
+        <!-- Step 1: Personal Details -->
+        <div class="onboarding-step active" id="step-1">
+          <div class="step-title">Personal Details</div>
+          <div class="step-subtitle">Tell us about yourself</div>
+
+          <div class="auth-field">
+            <label>Full Name</label>
+            <input type="text" class="auth-input" id="ob-name" placeholder="Your full name" required>
+          </div>
+          <div class="field-row">
+            <div class="auth-field">
+              <label>Phone Number</label>
+              <input type="tel" class="auth-input" id="ob-phone" placeholder="+91 98765 43210">
+            </div>
+            <div class="auth-field">
+              <label>City</label>
+              <input type="text" class="auth-input" id="ob-city" placeholder="e.g. Jaipur">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label>State</label>
+            <select class="auth-select" id="ob-state">
+              <option value="">Select State</option>
+              <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+              <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+              <option>Delhi</option><option>Goa</option><option>Gujarat</option>
+              <option>Haryana</option><option>Himachal Pradesh</option>
+              <option>Jharkhand</option><option>Karnataka</option><option>Kerala</option>
+              <option>Madhya Pradesh</option><option>Maharashtra</option><option>Manipur</option>
+              <option>Meghalaya</option><option>Mizoram</option><option>Nagaland</option>
+              <option>Odisha</option><option>Punjab</option><option>Rajasthan</option>
+              <option>Sikkim</option><option>Tamil Nadu</option><option>Telangana</option>
+              <option>Tripura</option><option>Uttar Pradesh</option><option>Uttarakhand</option>
+              <option>West Bengal</option>
+            </select>
+          </div>
+
+          <div class="step-buttons">
+            <button class="auth-btn auth-btn-primary" onclick="goToStep(2)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Business Details -->
+        <div class="onboarding-step" id="step-2">
+          <div class="step-title">Business Details</div>
+          <div class="step-subtitle">Help us understand your business</div>
+
+          <div class="auth-field">
+            <label>Business Name</label>
+            <input type="text" class="auth-input" id="ob-business-name" placeholder="e.g. Sharma General Store" required>
+          </div>
+          <div class="auth-field">
+            <label>Business Address</label>
+            <input type="text" class="auth-input" id="ob-business-address" placeholder="Street, Area, City, PIN">
+          </div>
+          <div class="field-row">
+            <div class="auth-field">
+              <label>GSTIN <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+              <input type="text" class="auth-input" id="ob-gstin" placeholder="22AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase">
+            </div>
+            <div class="auth-field">
+              <label>PAN Number <span style="color:var(--text-muted); font-weight:400;">(optional)</span></label>
+              <input type="text" class="auth-input" id="ob-pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+            </div>
+          </div>
+
+          <div class="step-buttons">
+            <button class="auth-btn auth-btn-secondary" onclick="goToStep(1)">← Back</button>
+            <button class="auth-btn auth-btn-primary" onclick="goToStep(3)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Business Classification -->
+        <div class="onboarding-step" id="step-3">
+          <div class="step-title">Business Type</div>
+          <div class="step-subtitle">This helps us give you personalized tax & AI suggestions</div>
+
+          <div class="field-row">
+            <div class="auth-field">
+              <label>Business Type</label>
+              <select class="auth-select" id="ob-biz-type">
+                <option value="trading">Trading</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="services">Services</option>
+              </select>
+            </div>
+            <div class="auth-field">
+              <label>Business Sector</label>
+              <select class="auth-select" id="ob-biz-sector">
+                <option value="grocery">Grocery Store</option>
+                <option value="electronics">Electronics</option>
+                <option value="clothing">Clothing / Textiles</option>
+                <option value="general">General Store</option>
+                <option value="food_beverages">Food & Beverages</option>
+                <option value="pharmacy">Pharmacy</option>
+                <option value="hardware">Hardware</option>
+                <option value="stationery">Stationery</option>
+                <option value="cosmetics">Cosmetics / Beauty</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <label>Annual Turnover Range</label>
+            <select class="auth-select" id="ob-turnover" onchange="autoClassifyMSME()">
+              <option value="below_1cr">Below ₹1 Crore</option>
+              <option value="1_5cr">₹1 - 5 Crore</option>
+              <option value="5_50cr">₹5 - 50 Crore</option>
+              <option value="50_250cr">₹50 - 250 Crore</option>
+            </select>
+          </div>
+
+          <div class="auth-field">
+            <label>MSME Category <span style="color:var(--text-muted); font-weight:400;">(auto-detected)</span></label>
+            <div id="msme-category-badge" class="msme-badge msme-micro">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              Micro Enterprise
+            </div>
+            <input type="hidden" id="ob-msme-category" value="micro">
+          </div>
+
+          <div class="auth-field">
+            <label>Primary Payment Mode</label>
+            <select class="auth-select" id="ob-payment-mode">
+              <option value="mixed">Mixed (Cash + Digital)</option>
+              <option value="digital">Mostly Digital (UPI / Card)</option>
+              <option value="cash">Mostly Cash</option>
+            </select>
+          </div>
+
+          <div class="step-buttons">
+            <button class="auth-btn auth-btn-secondary" onclick="goToStep(2)">← Back</button>
+            <button class="auth-btn auth-btn-primary" id="complete-btn" onclick="completeOnboarding()">Complete Setup</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/onboarding.js"></script>
+</body>
+</html>

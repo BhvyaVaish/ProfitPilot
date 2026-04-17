@@ -3,8 +3,15 @@ async function apiCall(endpoint, method = 'GET', body = null) {
     method,
     headers: { 'Content-Type': 'application/json' },
   };
+
+  // Always attach auth token if available - this is the critical fix
+  // window._authToken is set by auth-guard.js after Firebase resolves
+  if (window._authToken) {
+    options.headers['Authorization'] = `Bearer ${window._authToken}`;
+  }
+
   if (body) options.body = JSON.stringify(body);
-  
+
   try {
     const response = await fetch(endpoint, options);
     const data = await response.json();
@@ -23,21 +30,33 @@ function showToast(msg, type = 'error') {
     container.className = 'toast-container no-print';
     document.body.appendChild(container);
   }
-  
+
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.innerText = msg;
   container.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.animation = 'slideIn 0.3s ease-in reverse forwards';
     setTimeout(() => toast.remove(), 300);
-  }, 3000);
+  }, 3500);
 }
 
 function formatDateDisplay(dateStr) {
-    const d = new Date(dateStr);
-    return isNaN(d) ? dateStr : d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'});
+  const d = new Date(dateStr);
+  return isNaN(d) ? dateStr : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatCurrency(amount) {
+  const num = Number(amount);
+  if (isNaN(num)) return 'Rs.0';
+  return 'Rs.' + num.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function formatCurrencyDecimal(amount) {
+  const num = Number(amount);
+  if (isNaN(num)) return 'Rs.0.00';
+  return 'Rs.' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Global button glow animation interceptor
@@ -54,7 +73,7 @@ document.addEventListener('click', (e) => {
   const navItem = e.target.closest('.nav-item');
   if (navItem) {
     navItem.classList.remove('nav-click-anim');
-    void navItem.offsetWidth; // reflow to restart animation
+    void navItem.offsetWidth;
     navItem.classList.add('nav-click-anim');
     setTimeout(() => navItem.classList.remove('nav-click-anim'), 500);
   }

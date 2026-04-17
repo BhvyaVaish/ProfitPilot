@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Learn about ProfitPilot, the AI-powered retail management platform designed to help MSMEs grow and automate their daily business tasks.">
+  <title>About ProfitPilot</title>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <header>
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
+    <nav class="top-nav">
+      <a href="index.html" class="nav-item">Home</a>
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="billing.html" class="nav-item">Billing</a>
+      <a href="inventory.html" class="nav-item">Inventory</a>
+      <a href="tax.html" class="nav-item">Tax</a>
+      <a href="chatbot.html" class="nav-item">Assistant</a>
+      <a href="about.html" class="nav-item active">About</a>
+    </nav>
+    <div class="lang-toggle" onclick="toggleLanguage()">
+      <span class="lang-en active">EN</span><span class="lang-hi">HI</span>
+    </div>
+    <div class="user-profile auth-required" style="display:none;"></div>
+    <div class="user-profile guest-only"></div>
+  </header>
+
+  <main class="main-content">
+    <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+      
+      <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 3rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">About ProfitPilot</h1>
+        <p style="font-size: 1.2rem; color: var(--text-muted);">Your business on autopilot. Effortless growth for MSMEs.</p>
+      </div>
+
+      <div class="card mb-3" style="padding: 30px;">
+        <h2 class="text-blue" style="margin-bottom: 15px; font-size: 1.6rem;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:text-bottom;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> What is ProfitPilot?</h2>
+        <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-secondary);">
+          ProfitPilot is an AI-powered retail management platform designed specifically for MSMEs. We turn your daily operational headaches into massive growth opportunities. Say goodbye to messy notebooks and confusing spreadsheets!
+        </p>
+      </div>
+
+      <div class="grid-2 mb-3">
+        <div class="card" style="padding: 30px;">
+          <h2 style="color: var(--accent-orange); margin-bottom: 15px; font-size: 1.4rem;">How does it work?</h2>
+          <p style="font-size: 1.05rem; line-height: 1.6; color: var(--text-secondary);">
+            Simply sign up, add your stock and start billing! Our smart algorithms automatically track successful sales behind the scenes, manage your delicate inventory and predict what items you need to restock before you even run out.
+          </p>
+        </div>
+        <div class="card" style="padding: 30px; background: linear-gradient(145deg, rgba(37,99,235,0.05), rgba(0,0,0,0)); border-color: rgba(37,99,235,0.2);">
+          <h2 class="text-blue" style="margin-bottom: 15px; font-size: 1.4rem;">Getting Started is Easy!</h2>
+          <ul style="list-style:none; padding:0; font-size: 1.1rem; line-height: 1.8; color: var(--text-primary); font-weight: 500;">
+            <li>📦 <span>1. Add Products to your digital store</span></li>
+            <li>🧾 <span>2. Generate Bills in a few clicks</span></li>
+            <li>📊 <span>3. Track your daily progress instantly</span></li>
+            <li>🧠 <span>4. Get smart business advice via Assistant</span></li>
+            <li>📈 <span>5. Watch Profits Grow magically</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card mb-4" style="padding: 30px;">
+        <h2 style="color: var(--accent-green); margin-bottom: 20px; font-size: 1.6rem;">Why choose us?</h2>
+        <div class="grid-2 gap-2">
+          <div>
+            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">⚡ Zero Paperwork</h4>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Everything is digital, blazingly fast and completely secure in the cloud.</p>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">🚀 Supercharge Your Sales</h4>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Know exactly what products are selling hot and what is lying dead in the godown.</p>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">💰 Easy Tax & GST</h4>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">No more calculator stress! Get auto-calculated GST and friendly Income Tax estimates.</p>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">🤖 Intelligent Assistant</h4>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Just ask our AI Assistant any business question and get smart, data-driven answers instantly.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 50px;">
+        <h2 style="margin-bottom: 20px; font-size: 2rem;">Ready to upgrade your business?</h2>
+        <a href="auth.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 30px; border-radius: 30px; box-shadow: 0 4px 15px rgba(37,99,235,0.4);">Start Growing Today!</a>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    ProfitPilot v2.0 &mdash; AI-Driven Retail Management for MSMEs<br>
+    <div style="margin-top: 6px; font-size: 0.82rem; color: var(--text-muted);">
+      &copy; 2026. Made by <a href="https://github.com/bhvyavaish/" target="_blank" style="color:var(--text-primary); font-weight: 500; text-decoration:underline;">Bhvya Vaish</a>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
+  <script src="js/i18n.js"></script>
+</body>
+</html>

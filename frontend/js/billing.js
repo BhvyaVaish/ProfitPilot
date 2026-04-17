@@ -2,16 +2,48 @@ let products = [];
 let cart = [];
 
 const GST_RATES = {
-    sweets: 0.05, dairy: 0.05, clothing: 0.05,
-    snacks: 0.12, lights: 0.12, general: 0.18,
-    colors: 0.18, electronics: 0.18, gifts: 0.18, drinks: 0.28
+    // 0% Exempt (Essential / Educational)
+    fresh_produce: 0, milk: 0, grains: 0, stationery: 0,
+    // 5% Everyday consumer goods
+    grocery: 0.05, fmcg: 0.05, packaged_food: 0.05,
+    sweets: 0.05, dairy: 0.05, snacks: 0.05,
+    personal_care: 0.05, kitchenware: 0.05,
+    colours: 0.05, clothing: 0.05,
+    // 18% Standard rate
+    general: 0.18, electronics: 0.18, lights: 0.18,
+    gifts: 0.18, hardware: 0.18, decorations: 0.18, cosmetics: 0.18,
+    // 40% Sin / Luxury
+    drinks: 0.40, tobacco: 0.40, luxury: 0.40
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await loadProducts();
+// -- AUTH GUARD ---------------------------------------------------------
+function _requireBillingLogin(action) {
+    if (!window._isLoggedIn) {
+        showToast(`Please sign in to ${action}. Redirecting to login…`, 'error');
+        setTimeout(() => { window.location.href = '/auth'; }, 1500);
+        return false;
+    }
+    return true;
+}
+
+// Wait for auth-guard to finish resolving before loading products.
+// auth-guard.js fires 'auth-ready' on window when onAuthStateChanged resolves.
+function _initBilling() {
+    loadProducts();
+    loadRecentBills();
     document.getElementById('product-search').addEventListener('input', handleSearch);
-    document.getElementById('generate-bill-btn').addEventListener('click', generateBill);
-});
+    document.getElementById('generate-bill-btn').addEventListener('click', () => {
+        if (_requireBillingLogin('generate a bill')) generateBill();
+    });
+}
+
+// auth-guard fires 'auth-ready' — if it already fired before this script ran,
+// _authReady will be true (set below).
+if (window._authReady) {
+    document.addEventListener('DOMContentLoaded', _initBilling);
+} else {
+    window.addEventListener('auth-ready', _initBilling, { once: true });
+}
 
 async function loadProducts() {
     const data = await apiCall('/api/inventory');
@@ -19,43 +51,46 @@ async function loadProducts() {
 }
 
 function handleSearch(e) {
+    if (!_requireBillingLogin('search products for billing')) {
+        e.target.value = '';
+        return;
+    }
     const term = e.target.value.toLowerCase();
     const suggestions = document.getElementById('search-suggestions');
     suggestions.innerHTML = '';
-    
-    if(!term) return;
-    
+
+    if (!term) return;
+
     const matches = products.filter(p => p.name.toLowerCase().includes(term));
-    
+
     matches.forEach(p => {
         const div = document.createElement('div');
         div.className = 'search-item';
-        div.style.padding = '8px';
-        div.style.cursor = 'pointer';
-        div.style.borderBottom = '1px solid var(--border)';
-        div.innerHTML = `<strong>${p.name}</strong> - ₹${p.price} <small class="text-muted">(Stock: ${p.stock})</small>`;
-        
+        const stockColor = p.stock === 0 ? 'var(--accent-red)' : p.stock < 10 ? 'var(--accent-yellow)' : 'var(--text-muted)';
+        div.innerHTML = `<strong>${p.name}</strong> - Rs.${p.price} <small style="color:${stockColor};">(Stock: ${p.stock})</small>`;
+
         div.addEventListener('click', () => {
             addToCart(p);
             e.target.value = '';
             suggestions.innerHTML = '';
         });
-        
+
         suggestions.appendChild(div);
     });
 }
 
 function addToCart(product) {
+    if (!_requireBillingLogin('add items to cart')) return;
     product.id = product.id || product.product_id;
     const existing = cart.find(i => i.id === product.id);
-    if(existing) {
-        if(existing.quantity < product.stock) {
+    if (existing) {
+        if (existing.quantity < product.stock) {
             existing.quantity++;
         } else {
             showToast(`Only ${product.stock} units available for ${product.name}`);
         }
     } else {
-        if(product.stock > 0) {
+        if (product.stock > 0) {
             cart.push({ ...product, quantity: 1, product_id: product.id });
         } else {
             showToast(`${product.name} is out of stock`);
@@ -67,12 +102,12 @@ function addToCart(product) {
 
 function updateQuantity(id, qty) {
     const item = cart.find(i => i.product_id === id);
-    if(item) {
+    if (item) {
         const prod = products.find(p => p.id === id);
-        if(qty > prod.stock) {
+        if (qty > prod.stock) {
             showToast(`Only ${prod.stock} units available`);
             item.quantity = prod.stock;
-        } else if(qty < 1) {
+        } else if (qty < 1) {
             cart = cart.filter(i => i.product_id !== id);
         } else {
             item.quantity = parseInt(qty);
@@ -89,117 +124,151 @@ function removeFromCart(id) {
 function renderCart() {
     const tbody = document.getElementById('cart-body');
     tbody.innerHTML = '';
-    
+
     let total = 0;
-    
+
+    if (cart.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-muted text-center" style="padding:24px;">Search and add products above to start billing.</td></tr>';
+        document.getElementById('cart-total').innerText = 'Rs.0';
+        document.getElementById('generate-bill-btn').disabled = true;
+        return;
+    }
+
     cart.forEach(item => {
         const itemTotal = item.quantity * item.price;
         total += itemTotal;
-        
+
         tbody.innerHTML += `
             <tr>
-                <td>${item.name}</td>
-                <td>₹${item.price}</td>
+                <td><strong>${item.name}</strong></td>
+                <td>Rs.${item.price}</td>
                 <td>
-                    <input type="number" class="input-control" style="width: 70px; padding: 4px;" value="${item.quantity}" onchange="updateQuantity(${item.product_id}, this.value)">
+                    <input type="number" class="input-control" style="width: 68px; padding: 5px 8px; text-align:center;" value="${item.quantity}" min="1" max="${item.stock}" onchange="updateQuantity(${item.product_id}, this.value)">
                 </td>
-                <td>₹${itemTotal}</td>
-                <td><button class="btn btn-danger" style="padding: 4px 8px" onclick="removeFromCart(${item.product_id})">X</button></td>
+                <td style="font-weight:600;">Rs.${itemTotal}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="removeFromCart(${item.product_id})" style="padding:3px 8px;">X</button></td>
             </tr>
         `;
     });
-    
-    document.getElementById('cart-total').innerText = `₹${total}`;
-    document.getElementById('generate-bill-btn').disabled = cart.length === 0;
+
+    document.getElementById('cart-total').innerText = formatCurrency(total);
+    document.getElementById('generate-bill-btn').disabled = false;
 }
 
 async function generateBill() {
+    const customerName = document.getElementById('customer-name').value.trim();
     const payload = {
-        items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity }))
+        items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+        customer_name: customerName
     };
-    
+
     try {
         const btn = document.getElementById('generate-bill-btn');
         btn.innerHTML = '<div class="spinner"></div>';
         btn.disabled = true;
-        
+
         const res = await apiCall('/api/bill', 'POST', payload);
-        
+
         showToast('Bill Generated Successfully!', 'success');
         cart = [];
         renderCart();
-        loadProducts(); 
-        
+        await loadProducts();
+
         showInvoiceModal(res.bill);
-        
+        loadRecentBills();
+
         btn.innerHTML = 'Generate Bill';
-    } catch(e) {
+    } catch (e) {
         document.getElementById('generate-bill-btn').innerHTML = 'Generate Bill';
         document.getElementById('generate-bill-btn').disabled = false;
     }
 }
 
 function showInvoiceModal(bill) {
-    const modal = document.getElementById('invoice-modal');
+    // Get org name from user profile (set by auth-guard)
+    const orgName = (window._userProfile && window._userProfile.business_name)
+        ? window._userProfile.business_name
+        : 'Your Business';
+
+    document.getElementById('modal-overlay').classList.add('active');
     document.getElementById('inv-number').innerText = bill.bill_number;
-    document.getElementById('inv-date').innerText = new Date().toLocaleDateString();
-    
+    document.getElementById('inv-date').innerText = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    document.getElementById('inv-customer').innerText = bill.customer_name || 'Walk-in Customer';
+    document.getElementById('inv-org-name').innerText = orgName;
+
     const itemsDiv = document.getElementById('inv-items');
     itemsDiv.innerHTML = '';
-    
-    let subtotal = 0;
-    let totalCgst = 0;
-    let totalSgst = 0;
-    
+
+    let subtotal = bill.subtotal;
+    let totalGst = bill.gst_amount;
+
     bill.items.forEach(i => {
         const lineTotal = i.price * i.quantity;
-        subtotal += lineTotal;
         itemsDiv.innerHTML += `
-            <div class="flex-between mb-1" style="font-family: var(--font-body)">
+            <div class="flex-between mb-1" style="font-family: var(--font-body); font-size:0.9rem;">
                 <span>${i.name} x${i.quantity}</span>
-                <span>₹${lineTotal.toFixed(2)}</span>
+                <span>Rs.${lineTotal.toFixed(2)}</span>
             </div>
         `;
-        
-        const prodMatch = products.find(p => p.id === i.product_id);
-        const cat = prodMatch && prodMatch.category ? prodMatch.category.toLowerCase() : 'general';
-        const rate = GST_RATES[cat] || 0.18; // Default to 18% if category not found or general
-        
-        const itemGst = lineTotal * rate;
-        totalCgst += itemGst / 2;
-        totalSgst += itemGst / 2;
     });
-    
-    // Calculate Taxes & Fees
+
+    // Check GST override
     const manualGstInput = document.getElementById('manual-gst').value.trim();
-    const manualFeeInput = document.getElementById('manual-fee').value.trim();
-    
-    let platformFee = manualFeeInput !== '' ? parseFloat(manualFeeInput) : 10.00;
-    
     if (manualGstInput !== '' && !isNaN(manualGstInput)) {
-        // Manual override based on subtotal
         const overrideRate = parseFloat(manualGstInput) / 100;
-        const totalGst = subtotal * overrideRate;
-        totalCgst = totalGst / 2;
-        totalSgst = totalGst / 2;
-        document.getElementById('lbl-cgst').innerText = `CGST (${(parseFloat(manualGstInput)/2).toFixed(1)}%)`;
-        document.getElementById('lbl-sgst').innerText = `SGST (${(parseFloat(manualGstInput)/2).toFixed(1)}%)`;
+        totalGst = subtotal * overrideRate;
+        document.getElementById('lbl-cgst').innerText = `CGST (${(parseFloat(manualGstInput) / 2).toFixed(1)}%)`;
+        document.getElementById('lbl-sgst').innerText = `SGST (${(parseFloat(manualGstInput) / 2).toFixed(1)}%)`;
     } else {
-        document.getElementById('lbl-cgst').innerText = `CGST (Auto-Category)`;
-        document.getElementById('lbl-sgst').innerText = `SGST (Auto-Category)`;
+        document.getElementById('lbl-cgst').innerText = `CGST (Category-wise)`;
+        document.getElementById('lbl-sgst').innerText = `SGST (Category-wise)`;
     }
 
-    const grandTotal = subtotal + totalCgst + totalSgst + platformFee;
-    
-    document.getElementById('inv-subtotal').innerText = `₹${subtotal.toFixed(2)}`;
-    document.getElementById('inv-cgst').innerText = `₹${totalCgst.toFixed(2)}`;
-    document.getElementById('inv-sgst').innerText = `₹${totalSgst.toFixed(2)}`;
-    document.getElementById('inv-fee').innerText = `₹${platformFee.toFixed(2)}`;
-    document.getElementById('inv-total').innerText = `₹${grandTotal.toFixed(2)}`;
-    
-    document.getElementById('modal-overlay').classList.add('active');
+    const cgst = totalGst / 2;
+    const sgst = totalGst / 2;
+    const grandTotal = subtotal + totalGst;
+
+    document.getElementById('inv-subtotal').innerText = `Rs.${subtotal.toFixed(2)}`;
+    document.getElementById('inv-cgst').innerText     = `Rs.${cgst.toFixed(2)}`;
+    document.getElementById('inv-sgst').innerText     = `Rs.${sgst.toFixed(2)}`;
+    document.getElementById('inv-total').innerText    = `Rs.${grandTotal.toFixed(2)}`;
 }
 
 function closeInvoice() {
     document.getElementById('modal-overlay').classList.remove('active');
+}
+
+function printBill() {
+    if (!_requireBillingLogin('print/download the bill')) return;
+    window.print();
+}
+
+async function loadRecentBills() {
+    try {
+        const res = await apiCall('/api/bills?limit=5');
+        const container = document.getElementById('recent-bills');
+        container.innerHTML = '';
+
+        if (!res.bills || res.bills.length === 0) {
+            container.innerHTML = '<span class="text-muted" style="font-size:0.85rem;">No bills yet. Generate your first bill above.</span>';
+            return;
+        }
+
+        res.bills.forEach(b => {
+            const items = b.items || [];
+            const itemCount = items.reduce((sum, i) => sum + (i.quantity || 0), 0);
+            container.innerHTML += `
+                <div class="recent-bill-item">
+                    <div>
+                        <strong style="font-size:0.88rem; color:var(--text-primary);">${b.bill_number}</strong>
+                        ${b.customer_name ? `<span class="text-muted"> - ${b.customer_name}</span>` : ''}
+                        <div class="text-muted" style="font-size:0.78rem;">${b.created_at} | ${itemCount} items</div>
+                    </div>
+                    <div style="font-weight:700; color:var(--accent-blue);">Rs.${Number(b.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                </div>
+            `;
+        });
+    } catch (e) {
+        console.error('Failed to load recent bills', e);
+    }
 }

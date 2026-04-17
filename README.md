@@ -1,113 +1,149 @@
-# 🚀 ProfitPilot - AI-Driven Retail Management
+<div align="center">
 
-ProfitPilot is a premium, AI-driven business management and point-of-sale (POS) tool specifically designed for small and medium enterprises (MSMEs). It transforms raw business data into actionable, easy-to-understand insights, helping shop owners manage inventory, predict demand, estimate tax liabilities, and generate professional invoices—all without needing a background in data science or accounting.
+# ✈️ ProfitPilot
+**AI-Driven Retail Intelligence for MSMEs**
 
----
+*Smart inventory. Real insights. Built for Indian small businesses.*
 
-## ✨ Key Features
+[![Python](https://img.shields.io/badge/Python-3.x-blue?style=flat-square&logo=python)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey?style=flat-square&logo=flask)](https://flask.palletsprojects.com)
+[![Firebase](https://img.shields.io/badge/Auth-Firebase-yellow?style=flat-square&logo=firebase)](https://firebase.google.com)
 
-- **🌐 AI Control Center (Home):** A decision-making engine that instantly ranks the top actions you need to take today (restock warnings, high-demand alerts, dead stock detection).
-- **📊 Deep Analytics Dashboard:** Visualizes revenue velocity, catalog performance, cash efficiency, and provides mathematically sound smart procurement suggestions based on trends and upcoming festivals.
-- **📦 Smart Inventory Management:** A powerful control panel to manage your stock with instant color-coded health indicators and dynamic real-time threshold warnings, ensuring you never run out of your best-selling items.
-- **🧾 Billing & Invoicing:** Seamless cart management and bill generation that automatically calculates subtotal, GST (CGST/SGST), and synchronizes your live inventory instantly.
-- **💰 Tax & Financial Insights:** Demystifies your finances by estimating gross revenue, net profit margins, GST liability, and slab-based income tax, along with actionable tax-saving tips.
-- **🤖 AI Conversational Assistant:** A simulated natural language chatbot that acts as your business partner. Ask it about top-selling items or restock needs and get instant, data-backed answers.
+</div>
 
 ---
 
-## 🛠️ Technology Stack
+## What is ProfitPilot?
 
-Our application features a robust separation of concerns, utilizing an elegant custom UI overlayed on a fast, scalable Python backend.
+ProfitPilot is a web app that helps small shop owners manage their business without needing an accountant or a tech background. Upload your inventory, record sales, and the app figures out what to restock, what's not selling, how much tax you owe, and what to focus on today — all in one place.
 
-- **Frontend:** HTML5, CSS3 (Custom Premium Dark-Mode Glassmorphic UI), Vanilla JavaScript, Chart.js
-- **Backend API:** Python 3, Flask (RESTful architecture)
-- **Database:** SQLite 3 (Lightweight, serverless, and robust local storage)
-- **Dependencies:** `Flask`, `Flask-CORS`, `requests`, `python-dotenv`
+It's built specifically for the Indian market: GST rates, festival demand cycles, Section 44AD, Composition Scheme, and Hindi language support are all built in.
 
----
-
-## 🚀 Installation & Setup instructions
-
-Follow these steps to seamlessly clone, set up, and run ProfitPilot on any machine.
-
-### Prerequisites
-- **Python 3.8+** installed on your system.
-- **Git** installed on your system.
-
-### 1. Clone the Repository
-Open your terminal and clone the project:
-```bash
-git clone https://github.com/your-username/profitpilot.git
-cd profitpilot
-```
-
-### 2. Create a Virtual Environment
-It is highly recommended to isolate your dependencies using a Python virtual environment:
-
-**On Windows:**
-```powershell
-python -m venv .venv
-.\.venv\Scripts\activate
-```
-
-**On Mac/Linux:**
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies
-With your virtual environment activated (you will see `(.venv)` in your terminal prompt), install the required backend packages:
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure Environment Variables (Optional)
-If you want the Festival Prediction Engine to pull live data from the Calendarific API rather than using the integrated fallback system:
-1. Copy the example file:
-   - Linux/Mac: `cp .env.example .env`
-   - Windows: `copy .env.example .env`
-2. Open `.env` and replace `your_api_key_here` with your actual key.
-
-### 5. Start the Application Server
-Boot up the Python backend server (which also serves the frontend):
-```bash
-python backend/app.py
-```
-*Note: Upon its first run, the system will automatically generate a fresh `stockpilot.db` SQLite database populated with demo inventory and sales figures to power your charts!*
-
-### 6. Open the Application
-Navigate to your preferred web browser and open:
-👉 **[http://localhost:5000](http://localhost:5000)**
+> **Setup guide** → [QUICK_START.md](QUICK_START.md)
 
 ---
 
-## 📂 Repository Architecture
+## Features
 
-```text
+**Home — AI Command Center**  
+Real-time priority actions ranked by urgency. Business health score. Festival demand alerts. Weekly revenue at a glance.
+
+**Inventory Management**  
+Add products manually or import via CSV. Live stock filters (All / In Stock / Low / Out of Stock). Smart restock thresholds based on actual sales velocity.
+
+**Analytics Dashboard**  
+Revenue charts, top products, category breakdown, dead stock warnings, and procurement suggestions — all pulled from your own data.
+
+**Billing & Invoicing**  
+Create bills, auto-calculate GST, print professional invoices, and track bill history. Stock deducts automatically on each sale.
+
+**Tax Estimator**  
+GST breakdown by category. Income tax comparison (New vs Old Regime). Section 44AD and GST Composition Scheme eligibility checker. Fully personalized based on your business profile.
+
+**AI Assistant**  
+Ask questions in plain English or Hindi — *"What should I restock?"*, *"Mera profit kaisa hai?"* — and get answers based on your actual data, not generic answers.
+
+**Multi-User & Secure**  
+Every user's data is completely isolated. Sign in with email or Google. Onboarding captures your business profile for personalized AI suggestions and tax tips.
+
+---
+
+## Tech Stack
+
+| | |
+|---|---|
+| Frontend | HTML, Vanilla JS, CSS3, Chart.js |
+| Backend | Python 3, Flask |
+| Database | SQLite |
+| Auth | Firebase Authentication |
+| Festival Data | Calendarific API |
+| Language | EN / HI (built-in i18n engine) |
+
+---
+
+## Project Structure
+
+```
 ProfitPilot/
+├── README.md
+├── QUICK_START.md          ← Setup, troubleshooting, FAQ
+├── requirements.txt
+├── .env.example
+│
 ├── backend/
-│   ├── app.py                 # Core Flask application and server configuration
-│   ├── config.py              # Environment variables, algorithm thresholds, and fallbacks
-│   ├── database.py            # SQLite schema initialization and seed generation
-│   ├── models.py              # Database interaction and manipulation methods
-│   ├── routes/                # Modular API endpoints (Analytics, Billing, Inventory)
-│   └── services/              # Core logic layer (AI Engine, Chatbot queries, External APIs)
+│   ├── app.py              ← Server entry point
+│   ├── database.py         ← Schema & connection
+│   ├── models.py           ← Data access
+│   ├── config.py           ← GST rates, tax slabs
+│   ├── auth_middleware.py  ← Auth verification
+│   ├── routes/             ← API blueprints
+│   │   ├── auth.py
+│   │   ├── inventory.py
+│   │   ├── billing.py
+│   │   ├── analytics.py
+│   │   ├── home.py
+│   │   ├── tax.py
+│   │   ├── chatbot.py
+│   │   └── upload.py
+│   └── services/           ← AI & business logic
+│       ├── ai_engine.py
+│       ├── chatbot_engine.py
+│       ├── festival_service.py
+│       └── csv_service.py
 │
-├── frontend/
-│   ├── css/                   # Global styles, layout grids, and premium UI components
-│   ├── js/                    # Client-side JavaScript bound to DOM manipulations
-│   └── *.html                 # The interconnected web application interfaces
-│
-├── .env.example               # Template for API Keys and local secrets
-├── .gitignore                 # Protected system files
-└── requirements.txt           # Python dependency manifest
+└── frontend/
+    ├── index.html          ← Home / AI Command Center
+    ├── dashboard.html      ← Analytics
+    ├── inventory.html      ← Stock management
+    ├── billing.html        ← Invoicing
+    ├── tax.html            ← Tax estimator
+    ├── chatbot.html        ← AI assistant
+    ├── auth.html           ← Sign in / Sign up
+    ├── onboarding.html     ← First-time setup
+    ├── profile.html        ← Profile management
+    ├── css/
+    │   ├── base.css        ← Design tokens
+    │   ├── layout.css      ← Grid & header
+    │   ├── components.css  ← UI components
+    │   └── auth.css        ← Auth & onboarding
+    └── js/
+        ├── api.js          ← HTTP helper
+        ├── auth-guard.js   ← Auth state management
+        ├── i18n.js         ← EN/HI translations
+        ├── home.js
+        ├── dashboard.js
+        ├── inventory.js
+        ├── billing.js
+        ├── tax.js
+        └── chatbot.js
 ```
 
 ---
 
-## 💡 Troubleshooting
+## How the AI Works
 
-- **Port 5000 is occupied:** If Flask throws a port unavailable error, edit the `app.run(port=5000)` port in `backend/app.py` or manually stop the conflicting process.
-- **Missing Module Errors:** This happens if your virtual environment is deactivated. Run `.\.venv\Scripts\activate` (Windows) or `source .venv/bin/activate` (Mac/Linux) and reinstall the `requirements.txt`.
-- **Resetting the Database:** If you wish to wipe the application data and start over, simply delete `backend/stockpilot.db` and restart the backend server. It will automatically regenerate a new database on launch.
+No external ML library. The AI engine uses rolling sales averages to detect demand trends, cross-references upcoming festivals from the Calendarific API to predict category spikes, and calculates restock quantities with a 15% safety buffer. The Business Health Score is a weighted composite of stock availability, sales momentum, capital efficiency, product diversity, and revenue consistency.
+
+---
+
+## Pages
+
+| URL | Page |
+|---|---|
+| `/` | Home — AI actions and overview |
+| `/dashboard.html` | Revenue charts and analytics |
+| `/inventory.html` | Product catalogue and stock |
+| `/billing.html` | Create bills and print invoices |
+| `/tax.html` | GST and income tax estimator |
+| `/chatbot.html` | AI business assistant |
+| `/auth` | Sign in / Sign up |
+| `/onboarding` | First-time business setup |
+| `/profile` | Edit your business profile |
+
+---
+
+<div align="center">
+
+Built by **[Bhvya Vaish](https://github.com/bhvyavaish/)** for MSMEs everywhere.
+
+</div>

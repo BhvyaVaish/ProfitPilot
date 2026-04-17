@@ -1,4 +1,4 @@
-# Environments
+# ── Python virtual environments ────────────────────────────────────────────
 .venv/
 .venv-*/
 env/
@@ -7,20 +7,55 @@ ENV/
 env.bak/
 venv.bak/
 
-# Python
+# ── Python bytecode & caches ───────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
 
-# Environment variables
+# ── Environment variables ──────────────────────────────────────────────────
+# NEVER commit .env — add your secrets to the Vercel Dashboard instead
 .env
+.env.local
+.env.production
 
-# Database
+# ── Database files ─────────────────────────────────────────────────────────
+# Local SQLite DB — not used in production (Supabase replaces it)
+backend/profitpilot.db
 backend/stockpilot.db
+*.db
+*.sqlite
 
-# VS Code / IDEs
+# ── Firebase service account ───────────────────────────────────────────────
+# NEVER commit these — use FIREBASE_SERVICE_ACCOUNT_JSON env var on Vercel
+backend/firebase-service-account.json
+*firebase-adminsdk*
+*serviceAccountKey*
+
+# ── IDE & OS files ─────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
 *.swo
+.DS_Store
+Thumbs.db
+
+# ── Temporary / Debug files ────────────────────────────────────────────────
+# These were useful during development but don't belong in the public repo
+emoji_out.txt
+svgs.txt
+final.json
+response.json
+response2.json
+FLUSH_DATA_DEBUG_GUIDE.md
+FLUSH_DATA_FIX.md
+implementation_plan.md
+
+# ── Vercel build output ────────────────────────────────────────────────────
+.vercel/
+.vercel/output/

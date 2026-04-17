@@ -2,103 +2,189 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ProfitPilot - Billing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ProfitPilot Billing - Generate invoices with auto-calculated GST for your MSME business.">
+  <title>ProfitPilot - Intelligent Business Assistant for MSMEs</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <style>
+    .search-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; font-size: 0.9rem; }
+    .search-item:hover { background: rgba(37, 99, 235, 0.05); }
+    .search-wrapper { position: relative; }
+    #search-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-sm) var(--radius-sm); max-height: 260px; overflow-y: auto; z-index: 50; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .inv-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .inv-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.92rem; }
+    .inv-row.total-row { font-weight: 700; font-size: 1.1rem; border-top: 2px solid var(--text-primary); padding-top: 10px; margin-top: 4px; }
+    .recent-bill-item { padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+    .recent-bill-item:hover { background: rgba(37,99,235,0.03); }
+    @media (max-width: 768px) {
+      .inv-row { font-size: 0.85rem; }
+      .billing-grid { grid-template-columns: 1fr !important; }
+    }
+    @media print {
+      body * { visibility: hidden; }
+      #modal-overlay, #modal-overlay * { visibility: visible; }
+      #modal-overlay { position: absolute; left: 0; top: 0; background: none; backdrop-filter: none; }
+      .modal { box-shadow: none; border: none; width: 100%; max-width: none; }
+      .no-print { display: none !important; }
+      #bill-watermark { display: block !important; }
+    }
+  </style>
 </head>
 <body>
-  <header class="no-print">
-    <div class="logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
+  <header>
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
     <nav class="top-nav">
       <a href="index.html" class="nav-item">Home</a>
       <a href="dashboard.html" class="nav-item">Dashboard</a>
       <a href="billing.html" class="nav-item active">Billing</a>
       <a href="inventory.html" class="nav-item">Inventory</a>
-      <a href="tax.html" class="nav-item">Tax Estimator</a>
-      <a href="chatbot.html" class="nav-item">Chatbot</a>
+      <a href="tax.html" class="nav-item">Tax</a>
+      <a href="chatbot.html" class="nav-item">Assistant</a>
+      <a href="about.html" class="nav-item">About</a>
     </nav>
+    <div class="lang-toggle" onclick="toggleLanguage()">
+      <span class="lang-en active">EN</span><span class="lang-hi">HI</span>
+    </div>
     <div class="user-profile">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
     </div>
   </header>
 
-  <main class="main-content no-print">
+  <main class="main-content">
     <div class="page-header">
-      <h2>Create Bill</h2>
+      <div>
+        <h2>Billing & Invoicing</h2>
+        <p class="text-muted" style="margin-top: 4px;">Create invoices with auto-calculated category-wise GST.</p>
+      </div>
     </div>
 
-    <div class="grid-2">
-      <div class="card" style="align-self: flex-start;">
-        <h3 class="mb-2">Search Product</h3>
-        <input type="text" id="product-search" class="input-control mb-2" placeholder="Start typing product name...">
-        <div id="search-suggestions" style="max-height: 300px; overflow-y: auto;"></div>
+    <div class="billing-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:20px;">
+      <!-- Main Cart Area -->
+      <div>
+        <!-- Search -->
+        <div class="card mb-2">
+          <div class="search-wrapper">
+            <input type="text" id="product-search" class="input-control" placeholder="Search products by name to add to cart...">
+            <div id="search-suggestions"></div>
+          </div>
+        </div>
+
+        <!-- Cart Table -->
+        <div class="card">
+          <h3 class="mb-2">Current Cart</h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr><th>Product</th><th>Unit Price</th><th>Qty</th><th>Total</th><th></th></tr>
+              </thead>
+              <tbody id="cart-body">
+                <tr><td colspan="5" class="text-muted text-center" style="padding:24px;">Search and add products above to start billing.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="divider"></div>
+          <div class="flex-between">
+            <div style="font-size:1.15rem; font-weight:700; font-family:var(--font-display);">Subtotal: <span id="cart-total" style="color:var(--accent-blue);">Rs.0</span></div>
+            <button id="generate-bill-btn" class="btn btn-primary" disabled>Generate Bill</button>
+          </div>
+        </div>
+
+        <!-- Recent Bills -->
+        <div class="card mt-2">
+          <h3 class="mb-2 text-muted"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:text-bottom;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Recent Bills</h3>
+          <div id="recent-bills" style="display:flex; flex-direction:column; gap:8px;">
+            <span class="text-muted" style="font-size:0.85rem;">Loading...</span>
+          </div>
+        </div>
       </div>
 
-      <div class="card">
-        <h3 class="mb-2">Current Cart</h3>
-        <div class="table-container mb-2">
-            <table>
-                <thead>
-                    <tr><th>Item</th><th>Price</th><th>Qty</th><th>Total</th><th></th></tr>
-                </thead>
-                <tbody id="cart-body">
-                    <tr><td colspan="5" class="text-muted text-center">Cart is empty</td></tr>
-                </tbody>
-            </table>
+      <!-- Sidebar: Customer + Options -->
+      <div>
+        <div class="card mb-2">
+          <h3 class="mb-2 text-muted">Customer Details</h3>
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:4px; display:block;">Customer Name (Optional)</label>
+          <input type="text" id="customer-name" class="input-control mb-1" placeholder="Walk-in Customer">
         </div>
-        
-        <div class="grid-2 mb-2" style="gap: 16px; margin-top: 16px;">
-            <div>
-                <label class="text-muted" style="font-size: 0.85rem; display:block; margin-bottom: 4px;">Manual GST Override (%)</label>
-                <input type="number" id="manual-gst" class="input-control" placeholder="Leave blank for Auto GST" step="0.1" min="0">
-            </div>
-            <div>
-                <label class="text-muted" style="font-size: 0.85rem; display:block; margin-bottom: 4px;">Platform Fee (₹)</label>
-                <input type="number" id="manual-fee" class="input-control" placeholder="e.g. 10.00" value="10.00" step="0.01" min="0">
-            </div>
-        </div>
-
-        <div class="flex-between" style="border-top: 1px solid var(--border); padding-top: 16px;">
-            <h3>Total: <span id="cart-total" class="text-blue">₹0</span></h3>
-            <button id="generate-bill-btn" class="btn btn-primary" disabled>Generate Bill</button>
+        <div class="card">
+          <h3 class="mb-2 text-muted">Bill Options</h3>
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); display:block;">GST Override %</label>
+          <input type="number" id="manual-gst" class="input-control mb-1" placeholder="Auto (category-wise)" min="0" max="40" step="1">
+          <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Leave blank for auto category-wise GST.</p>
         </div>
       </div>
     </div>
   </main>
 
-  <!-- Invoice Modal -->
-  <div class="modal-overlay" id="modal-overlay">
-      <div class="modal" id="invoice-modal">
-          <h2 class="text-center mb-1">STOCKPILOT AI</h2>
-          <div class="text-center text-muted mb-2">Invoice #<span id="inv-number"></span></div>
-          <div class="text-center text-muted mb-3">Date: <span id="inv-date"></span></div>
-          
-          <div style="border-top: 1px dashed var(--border); padding: 16px 0 0 0;" class="mb-3">
-              <div class="flex-between mb-1 text-muted"><small>ITEM</small><small>AMOUNT</small></div>
-              <div id="inv-items" class="mb-2"></div>
-          </div>
-
-          <div style="border-top: 1px dashed var(--border); padding: 16px 0;" class="mb-3" id="inv-taxes">
-              <div class="flex-between mb-1 text-muted"><small>Subtotal</small><small id="inv-subtotal"></small></div>
-              <div class="flex-between mb-1 text-muted"><small id="lbl-cgst">CGST (Auto)</small><small id="inv-cgst"></small></div>
-              <div class="flex-between mb-1 text-muted"><small id="lbl-sgst">SGST (Auto)</small><small id="inv-sgst"></small></div>
-              <div class="flex-between mb-1 text-muted"><small>Platform Fee</small><small id="inv-fee">₹10.00</small></div>
-          </div>
-          
-          <div class="flex-between mb-3" style="border-top: 2px solid var(--border); padding-top: 16px;">
-              <h3>GRAND TOTAL</h3>
-              <h3 id="inv-total"></h3>
-          </div>
-          
-          <div class="text-center gap-1 flex-between no-print">
-              <button class="btn" style="flex:1; justify-content:center" onclick="closeInvoice()">Close</button>
-              <button class="btn btn-primary" style="flex:1; justify-content:center" onclick="window.print()">Print</button>
-          </div>
+  <!-- Updated Footer -->
+  <footer class="app-footer">
+    <div class="no-print">
+      ProfitPilot v2.0 &mdash; AI-Driven Retail Management for MSMEs<br>
+      <div style="margin-top: 6px; font-size: 0.82rem; color: var(--text-muted);">
+        &copy; 2026. Made by <a href="https://github.com/bhvyavaish/" target="_blank" style="color:var(--text-primary); font-weight: 500; text-decoration:underline;">Bhvya Vaish</a>
       </div>
+    </div>
+  </footer>
+
+  <!-- Invoice Modal -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal" id="invoice-modal" style="max-width: 520px; position:relative; overflow:hidden;">
+
+      <div style="position:relative; z-index:1;">
+        <!-- Header: Org name + ProfitPilot branding -->
+        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--text-primary);">
+          <h2 id="inv-org-name" style="margin-bottom: 2px; font-size:1.4rem;">Your Business</h2>
+          <p style="font-size:0.78rem; color:var(--accent-blue); font-weight:600; letter-spacing:0.04em;">TAX INVOICE</p>
+          <p style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">Generated via ProfitPilot</p>
+        </div>
+
+        <div class="flex-between mb-1" style="font-size:0.85rem;">
+          <span class="text-muted">Invoice #</span>
+          <strong id="inv-number">—</strong>
+        </div>
+        <div class="flex-between mb-1" style="font-size:0.85rem;">
+          <span class="text-muted">Date</span>
+          <span id="inv-date">—</span>
+        </div>
+        <div class="flex-between mb-2" style="font-size:0.85rem;">
+          <span class="text-muted">Customer</span>
+          <span id="inv-customer">Walk-in</span>
+        </div>
+        <div class="divider"></div>
+        <div id="inv-items" class="mb-2"></div>
+        <div class="divider"></div>
+        <div class="inv-row"><span class="text-muted">Subtotal</span><span id="inv-subtotal">—</span></div>
+        <div class="inv-row"><span class="text-muted" id="lbl-cgst">CGST</span><span id="inv-cgst">—</span></div>
+        <div class="inv-row"><span class="text-muted" id="lbl-sgst">SGST</span><span id="inv-sgst">—</span></div>
+        <div class="inv-row total-row"><span>GRAND TOTAL</span><span id="inv-total" style="color:var(--accent-blue);">—</span></div>
+
+        <!-- ProfitPilot Branding (visible in print) -->
+        <div id="bill-watermark" style="text-align:center; margin-top:20px; padding-top:12px; border-top:1px dashed var(--border); font-size:0.75rem; color:var(--text-muted); display:none;">
+          Generated accurately via <strong>ProfitPilot</strong><br>
+          <span style="font-size:0.65rem;">AI-Driven Retail Management for MSMEs</span>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:20px;" class="no-print">
+          <button class="btn" onclick="closeInvoice()" style="flex:1;">Close</button>
+          <button class="btn btn-primary" onclick="printBill()" style="flex:1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Print / Download
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
   <script src="js/billing.js"></script>
+  <script src="js/i18n.js"></script>
 </body>
 </html>

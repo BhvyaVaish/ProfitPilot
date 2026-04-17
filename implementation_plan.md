@@ -1,6 +1,6 @@
-# StockPilot AI Implementation Plan
+# ProfitPilot AI Implementation Plan
 
-This document outlines the strategy for building StockPilot AI, a full-stack web application designed as an AI-powered business management assistant for small businesses.
+This document outlines the strategy for building ProfitPilot AI, a full-stack web application designed as an AI-powered business management assistant for small businesses.
 
 ## Goal Description
 

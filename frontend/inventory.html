@@ -3,102 +3,125 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ProfitPilot - Inventory</title>
+  <meta name="description" content="ProfitPilot Inventory Management - Manage stock, restock products, and track inventory for your MSME business.">
+  <title>ProfitPilot - Intelligent Business Assistant for MSMEs</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/auth.css">
   <style>
-    .status-pill {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
+    .status-pill { padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .status-ok { color: var(--accent-green); background: rgba(16,185,129,0.1); }
+    .status-low { color: var(--accent-yellow); background: rgba(245,158,11,0.1); }
+    .status-out { color: var(--accent-red); background: rgba(239,68,68,0.1); }
+    .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border-strong); background: transparent; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.2s; color: var(--text-muted); font-family: var(--font-body); }
+    .chip:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+    .chip.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+    .tbl-action-btn { padding: 4px 10px!important; font-size: 0.78rem!important; border-radius: 6px!important; }
+    @media (max-width: 768px) {
+      .tbl-action-btn { padding: 3px 6px!important; font-size: 0.72rem!important; }
     }
-    .status-ok   { background: rgba(52, 211, 153, 0.15); color: #34d399; border: 1px solid #34d39955; }
-    .status-low  { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid #fbbf2455; }
-    .status-out  { background: rgba(239, 68, 68, 0.15);  color: #ef4444; border: 1px solid #ef444455; }
-
-    .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-    .chip {
-      padding: 5px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.82rem;
-      transition: all 0.2s;
-    }
-    .chip:hover, .chip.active { border-color: var(--accent-orange); color: var(--accent-orange); background: rgba(217,95,54,0.1); }
-
-    .inv-search {
-      flex: 1;
-      min-width: 200px;
-    }
-    .actions-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-    .modal-label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--text-muted); }
-    .tbl-action-btn { padding: 4px 10px; font-size: 0.8rem; }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-      ProfitPilot
-    </div>
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
     <nav class="top-nav">
       <a href="index.html" class="nav-item">Home</a>
       <a href="dashboard.html" class="nav-item">Dashboard</a>
       <a href="billing.html" class="nav-item">Billing</a>
       <a href="inventory.html" class="nav-item active">Inventory</a>
-      <a href="tax.html" class="nav-item">Tax Estimator</a>
-      <a href="chatbot.html" class="nav-item">Chatbot</a>
+      <a href="tax.html" class="nav-item">Tax</a>
+      <a href="chatbot.html" class="nav-item">Assistant</a>
+      <a href="about.html" class="nav-item">About</a>
     </nav>
+    <div class="lang-toggle" onclick="toggleLanguage()">
+      <span class="lang-en active">EN</span><span class="lang-hi">HI</span>
+    </div>
     <div class="user-profile">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
     </div>
   </header>
 
   <main class="main-content">
     <div class="page-header">
       <div>
-        <h2>Inventory Control</h2>
-        <p class="text-muted" style="margin-top:4px;">What do you have? Manage it here.</p>
+        <h2>Inventory Management</h2>
+        <p class="text-muted" style="margin-top: 4px;">Track, restock and manage your product catalog.</p>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn" onclick="openRestockModal()" id="restock-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-.07-5"></path></svg>
-          Add Stock
-        </button>
-        <button class="btn btn-primary" onclick="openAddModal()" id="add-product-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <!-- Hidden file input for CSV import -->
+      <input type="file" id="csv-import-input" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+
+        <!-- Add Product — always visible, gated by login check -->
+        <button class="btn btn-primary" onclick="guardedAddProduct()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           Add Product
         </button>
-      </div>
-    </div>
 
-    <!-- Search + Filter Bar -->
-    <div class="card mb-3">
-      <div class="actions-bar">
-        <input type="text" id="search-inv" class="input-control inv-search" placeholder="🔍 Search by product name...">
-        <div class="filter-chips">
-          <span class="chip active" data-filter="all" onclick="setFilter('all', this)">All Products</span>
-          <span class="chip" data-filter="low" onclick="setFilter('low', this)">🟡 Low Stock</span>
-          <span class="chip" data-filter="out" onclick="setFilter('out', this)">🔴 Out of Stock</span>
-          <span class="chip" data-filter="ok" onclick="setFilter('ok', this)">🟢 OK</span>
+        <!-- Import CSV — always visible, gated by login check, with tooltip -->
+        <div class="inv-btn-wrap" data-tooltip="Upload a CSV file to add products in bulk. Use the Template button to download the correct format first.">
+          <button class="btn btn-success" onclick="guardedImport()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Import
+          </button>
         </div>
+
+        <!-- Download Template — always visible, with tooltip -->
+        <div class="inv-btn-wrap" data-tooltip="Download a blank CSV template. Fill it with your products and import it to add them all at once.">
+          <button class="btn" onclick="downloadTemplate()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 18 15 15"></polyline></svg>
+            Template
+          </button>
+        </div>
+
+        <!-- Download Inventory — always visible, with tooltip -->
+        <div class="inv-btn-wrap" data-tooltip="Download your full current inventory as a CSV file, ready to open in Excel or Google Sheets.">
+          <button class="btn" onclick="exportCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Download Inventory
+          </button>
+        </div>
+
       </div>
     </div>
 
-    <!-- Main Inventory Table -->
+    <!-- Stats Cards -->
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">Total Products</div>
+        <div class="card-value" id="stat-total">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title text-yellow">Low Stock Items</div>
+        <div class="card-value text-yellow" id="stat-low">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title text-red">Out of Stock</div>
+        <div class="card-value text-red" id="stat-out">-</div>
+      </div>
+    </div>
+
+    <!-- Filters + Search -->
     <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button class="chip active" onclick="setFilter('all', this)">All</button>
+          <button class="chip" onclick="setFilter('ok', this)">In Stock</button>
+          <button class="chip" onclick="setFilter('low', this)">Low Stock</button>
+          <button class="chip" onclick="setFilter('out', this)">Out of Stock</button>
+        </div>
+        <input type="text" id="search-inv" class="input-control" placeholder="Search..." style="max-width:250px;">
+      </div>
+
+      <!-- Inventory Table -->
       <div class="table-container">
-        <table id="inventory-table">
+        <table>
           <thead>
             <tr>
-              <th>Product Name</th>
+              <th>Product</th>
               <th>Category</th>
               <th style="text-align:center;">Stock</th>
               <th>Price</th>
@@ -107,118 +130,119 @@
             </tr>
           </thead>
           <tbody id="inventory-body">
-            <tr><td colspan="6" style="text-align:center;"><div class="spinner"></div></td></tr>
+            <tr><td colspan="6" class="text-muted text-center" style="padding:32px;"><div class="spinner"></div></td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
-    <!-- Stats Strip -->
-    <div class="grid-3 mt-2" style="margin-top:20px;">
-      <div class="card" style="text-align:center;">
-        <div class="text-muted" style="font-size:0.82rem; margin-bottom:4px;">TOTAL PRODUCTS</div>
-        <div class="card-value" id="stat-total">-</div>
-      </div>
-      <div class="card" style="text-align:center; border: 1px solid rgba(251,191,36,0.3);">
-        <div class="text-muted" style="font-size:0.82rem; margin-bottom:4px;">LOW STOCK</div>
-        <div class="card-value text-yellow" id="stat-low">-</div>
-      </div>
-      <div class="card" style="text-align:center; border: 1px solid rgba(239,68,68,0.3);">
-        <div class="text-muted" style="font-size:0.82rem; margin-bottom:4px;">OUT OF STOCK</div>
-        <div class="card-value text-red" id="stat-out">-</div>
-      </div>
-    </div>
   </main>
 
-  <!-- ======================= MODALS ======================= -->
+  <footer class="app-footer">
+    ProfitPilot v2.0 &mdash; AI-Driven Retail Management for MSMEs<br>
+    <div style="margin-top: 6px; font-size: 0.82rem; color: var(--text-muted);">
+      &copy; 2026. Made by <a href="https://github.com/bhvyavaish/" target="_blank" style="color:var(--text-primary); font-weight: 500; text-decoration:underline;">Bhvya Vaish</a>
+    </div>
+  </footer>
 
-  <!-- Add Product Modal -->
-  <div class="modal-overlay" id="add-modal-overlay">
+  <!-- ─── ADD PRODUCT MODAL ──────────────────────────────────────────── -->
+  <div id="add-modal-overlay" class="modal-overlay">
     <div class="modal">
-      <h3 class="mb-3">Add New Product</h3>
-      <form id="add-form">
-        <div class="mb-2">
-          <label class="modal-label">Product Name *</label>
-          <input type="text" id="p-name" class="input-control" placeholder="e.g. Dove Soap" required>
+      <h3 class="mb-2">Add New Product</h3>
+      <div id="add-error" style="display:none; background:rgba(239,68,68,0.08); color:var(--accent-red); padding:10px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.88rem;"></div>
+      <form id="add-form" autocomplete="off">
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Product Name</label>
+        <input type="text" id="p-name" class="input-control mb-1" placeholder="e.g. Tata Salt 1kg" required>
+
+        <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Category</label>
+        <select id="p-category" class="input-control mb-1">
+          <option value="grocery">Grocery</option>
+          <option value="fmcg">FMCG</option>
+          <option value="packaged_food">Packaged Food</option>
+          <option value="snacks">Snacks</option>
+          <option value="sweets">Sweets</option>
+          <option value="dairy">Dairy</option>
+          <option value="personal_care">Personal Care</option>
+          <option value="clothing">Clothing</option>
+          <option value="electronics">Electronics</option>
+          <option value="stationery">Stationery</option>
+          <option value="kitchenware">Kitchenware</option>
+          <option value="hardware">Hardware</option>
+          <option value="gifts">Gifts</option>
+          <option value="lights">Lights / Electrical</option>
+          <option value="decorations">Decorations</option>
+          <option value="colours">Colours / Holi</option>
+          <option value="cosmetics">Cosmetics</option>
+          <option value="drinks">Beverages</option>
+          <option value="general">General</option>
+        </select>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div>
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Price (Rs.)</label>
+            <input type="number" id="p-price" class="input-control" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+          <div>
+            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Initial Stock</label>
+            <input type="number" id="p-stock" class="input-control" placeholder="0" min="0" required>
+          </div>
         </div>
-        <div class="mb-2">
-          <label class="modal-label">Category *</label>
-          <select id="p-category" class="input-control" required>
-            <option value="general">General</option>
-            <option value="sweets">Sweets</option>
-            <option value="colors">Colors</option>
-            <option value="clothing">Clothing</option>
-            <option value="electronics">Electronics</option>
-            <option value="lights">Lights</option>
-            <option value="gifts">Gifts</option>
-            <option value="drinks">Drinks</option>
-            <option value="snacks">Snacks</option>
-            <option value="dairy">Dairy</option>
-          </select>
-        </div>
-        <div class="mb-2">
-          <label class="modal-label">Selling Price (₹) *</label>
-          <input type="number" step="0.01" min="0.01" id="p-price" class="input-control" placeholder="e.g. 45.00" required>
-        </div>
-        <div class="mb-3">
-          <label class="modal-label">Initial Stock (units)</label>
-          <input type="number" min="0" id="p-stock" class="input-control" placeholder="e.g. 100" value="0" required>
-        </div>
-        <div id="add-error" style="color:#ef4444; font-size:0.85rem; margin-bottom:8px; display:none;"></div>
-        <div style="display:flex; gap:10px;">
-          <button type="button" class="btn" onclick="closeAddModal()" style="flex:1; justify-content:center;">Cancel</button>
-          <button type="submit" class="btn btn-primary" style="flex:1; justify-content:center;">Add Product</button>
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button type="button" class="btn" onclick="closeAddModal()" style="flex:1;">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="flex:1;">Add Product</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Add Stock (Restock) Modal -->
-  <div class="modal-overlay" id="restock-modal-overlay">
+  <!-- ─── RESTOCK MODAL ──────────────────────────────────────────────── -->
+  <div id="restock-modal-overlay" class="modal-overlay">
     <div class="modal">
-      <h3 class="mb-3">Add Stock to Existing Product</h3>
-      <div class="mb-2">
-        <label class="modal-label">Select Product *</label>
-        <select id="restock-select" class="input-control"></select>
-      </div>
-      <div class="mb-3">
-        <label class="modal-label">Quantity to Add *</label>
-        <input type="number" min="1" id="restock-qty" class="input-control" placeholder="e.g. 50">
-      </div>
-      <div id="restock-error" style="color:#ef4444; font-size:0.85rem; margin-bottom:8px; display:none;"></div>
+      <h3 class="mb-2">Add Stock</h3>
+      <div id="restock-error" style="display:none; background:rgba(239,68,68,0.08); color:var(--accent-red); padding:10px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.88rem;"></div>
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Select Product</label>
+      <select id="restock-select" class="input-control mb-1"></select>
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Quantity to Add</label>
+      <input type="number" id="restock-qty" class="input-control mb-2" placeholder="e.g. 50" min="1">
       <div style="display:flex; gap:10px;">
-        <button type="button" class="btn" onclick="closeRestockModal()" style="flex:1; justify-content:center;">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="handleAddStock()" style="flex:1; justify-content:center;">Add Stock</button>
+        <button class="btn" onclick="closeRestockModal()" style="flex:1;">Cancel</button>
+        <button class="btn btn-primary" onclick="handleAddStock()" style="flex:1;">Update Stock</button>
       </div>
     </div>
   </div>
 
-  <!-- Edit Product Modal -->
-  <div class="modal-overlay" id="edit-modal-overlay">
+  <!-- ─── EDIT PRODUCT MODAL ─────────────────────────────────────────── -->
+  <div id="edit-modal-overlay" class="modal-overlay">
     <div class="modal">
-      <h3 class="mb-3">Edit Product</h3>
+      <h3 class="mb-2">Edit Product</h3>
+      <div id="edit-error" style="display:none; background:rgba(239,68,68,0.08); color:var(--accent-red); padding:10px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.88rem;"></div>
       <input type="hidden" id="edit-id">
-      <div class="mb-2">
-        <label class="modal-label">Product Name</label>
-        <input type="text" id="edit-name" class="input-control">
+      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Product Name</label>
+      <input type="text" id="edit-name" class="input-control mb-1">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Price (Rs.)</label>
+          <input type="number" id="edit-price" class="input-control" step="0.01">
+        </div>
+        <div>
+          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Stock</label>
+          <input type="number" id="edit-stock" class="input-control" min="0">
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="modal-label">Selling Price (₹)</label>
-        <input type="number" step="0.01" min="0.01" id="edit-price" class="input-control">
-      </div>
-      <div class="mb-3">
-        <label class="modal-label">Current Stock</label>
-        <input type="number" min="0" id="edit-stock" class="input-control">
-      </div>
-      <div id="edit-error" style="color:#ef4444; font-size:0.85rem; margin-bottom:8px; display:none;"></div>
-      <div style="display:flex; gap:10px;">
-        <button type="button" class="btn" onclick="closeEditModal()" style="flex:1; justify-content:center;">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="handleEditProduct()" style="flex:1; justify-content:center;">Save Changes</button>
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <button class="btn" onclick="closeEditModal()" style="flex:1;">Cancel</button>
+        <button class="btn btn-primary" onclick="handleEditProduct()" style="flex:1;">Save Changes</button>
       </div>
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/auth-guard.js"></script>
   <script src="js/inventory.js"></script>
+  <script src="js/i18n.js"></script>
 </body>
 </html>
