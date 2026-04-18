@@ -37,56 +37,80 @@ window.apiCall = async function(endpoint, method = 'GET', body = null) {
   }
 };
 
-// Listen for auth state changes — set up immediately, no DOMContentLoaded wrapper needed.
-// Firebase SDK is loaded via <script> tags before this file, so auth is already available.
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    window._isLoggedIn = true;
-    _authToken = await user.getIdToken();
-    window._authToken = _authToken; // Expose globally
-
-    console.log('[AUTH] User logged in:', user.email, 'UID:', user.uid);
-
-    // Refresh token periodically (every 50 min)
-    setInterval(async () => {
-      _authToken = await user.getIdToken(true);
-      window._authToken = _authToken; // Update global reference
-    }, 50 * 60 * 1000);
-
-    // Show authenticated UI (waits for DOM to be ready)
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => _showAuthenticatedUI(user));
-    } else {
-      _showAuthenticatedUI(user);
-    }
-
-    // Fetch profile for header
-    try {
-      const profileRes = await fetch('/api/auth/profile', {
-        headers: { 'Authorization': `Bearer ${_authToken}` }
-      });
-      if (profileRes.ok) {
-        const data = await profileRes.json();
-        window._userProfile = data.profile;
-      }
-    } catch(e) { /* ignore */ }
-
-  } else {
+// Wait for Firebase to be initialized (it now loads config asynchronously)
+function _attachAuthListener() {
+  // If Firebase failed to init, go straight to guest UI
+  if (window._firebaseError) {
+    console.warn('[AUTH] Firebase init failed — running in guest/demo mode');
     window._isLoggedIn = false;
     _authToken = null;
-    window._authToken = null; // Clear global reference
-    console.log('[AUTH] User logged out or not authenticated');
+    window._authToken = null;
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', _showGuestUI);
     } else {
       _showGuestUI();
     }
+    window._authReady = true;
+    window.dispatchEvent(new CustomEvent('auth-ready'));
+    return;
   }
 
-  // Signal that auth state is resolved — other scripts wait for this
-  window._authReady = true;
-  window.dispatchEvent(new CustomEvent('auth-ready'));
-});
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      window._isLoggedIn = true;
+      _authToken = await user.getIdToken();
+      window._authToken = _authToken; // Expose globally
+
+      console.log('[AUTH] User logged in:', user.email, 'UID:', user.uid);
+
+      // Refresh token periodically (every 50 min)
+      setInterval(async () => {
+        _authToken = await user.getIdToken(true);
+        window._authToken = _authToken; // Update global reference
+      }, 50 * 60 * 1000);
+
+      // Show authenticated UI (waits for DOM to be ready)
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => _showAuthenticatedUI(user));
+      } else {
+        _showAuthenticatedUI(user);
+      }
+
+      // Fetch profile for header
+      try {
+        const profileRes = await fetch('/api/auth/profile', {
+          headers: { 'Authorization': `Bearer ${_authToken}` }
+        });
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          window._userProfile = data.profile;
+        }
+      } catch(e) { /* ignore */ }
+
+    } else {
+      window._isLoggedIn = false;
+      _authToken = null;
+      window._authToken = null; // Clear global reference
+      console.log('[AUTH] User logged out or not authenticated');
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _showGuestUI);
+      } else {
+        _showGuestUI();
+      }
+    }
+
+    // Signal that auth state is resolved — other scripts wait for this
+    window._authReady = true;
+    window.dispatchEvent(new CustomEvent('auth-ready'));
+  });
+}
+
+// Attach when Firebase is ready (async init via /api/config)
+if (window._firebaseReady) {
+  _attachAuthListener();
+} else {
+  window.addEventListener('firebase-ready', _attachAuthListener, { once: true });
+}
 
 
 function _showAuthenticatedUI(user) {

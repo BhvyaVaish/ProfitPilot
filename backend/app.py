@@ -32,11 +32,13 @@ from routes.festivals import festivals_bp
 from routes.upload import upload_bp
 from routes.tax import tax_bp
 from routes.auth import auth_bp
+from routes.client_config import config_bp
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app)
 
 app.register_blueprint(auth_bp)
+app.register_blueprint(config_bp)
 app.register_blueprint(billing_bp)
 app.register_blueprint(inventory_bp)
 app.register_blueprint(analytics_bp)

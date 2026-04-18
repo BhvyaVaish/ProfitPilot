@@ -18,11 +18,12 @@ dist/
 build/
 .eggs/
 
-# ── Environment variables ──────────────────────────────────────────────────
-# NEVER commit .env — add your secrets to the Vercel Dashboard instead
+# ── Environment variables & secrets ────────────────────────────────────────
+# NEVER commit .env or files containing API keys / credentials
 .env
 .env.local
 .env.production
+frontend/js/firebase-config.js
 
 # ── Database files ─────────────────────────────────────────────────────────
 # Local SQLite DB — not used in production (Supabase replaces it)
@@ -46,15 +47,14 @@ backend/firebase-service-account.json
 Thumbs.db
 
 # ── Temporary / Debug files ────────────────────────────────────────────────
-# These were useful during development but don't belong in the public repo
 emoji_out.txt
 svgs.txt
 final.json
 response.json
 response2.json
+implementation_plan.md
 FLUSH_DATA_DEBUG_GUIDE.md
 FLUSH_DATA_FIX.md
-implementation_plan.md
 
 # ── Vercel build output ────────────────────────────────────────────────────
 .vercel/
