@@ -377,11 +377,13 @@ def init_db():
         for stmt in _POSTGRES_SCHEMA:
             cur.execute(stmt)
         # Migration: add cost_price column if missing
+        raw.commit() # Commit the CREATE TABLE statements first!
         try:
             cur.execute("ALTER TABLE products ADD COLUMN cost_price REAL DEFAULT NULL")
+            raw.commit()
         except Exception:
-            pass  # Column already exists
-        raw.commit()
+            raw.rollback()  # Clear the aborted transaction state!
+        
         cur.close()
         conn = _PgConnection(raw)
         seed_data(conn)
