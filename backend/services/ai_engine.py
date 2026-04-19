@@ -314,10 +314,13 @@ def get_home_mini_insights(user_id='demo'):
         high_potential = f"{best_candidate['name']} (Festival demand expected)"
     else:
         # Fallback to recent sales momentum if no festivals apply
+        metrics = get_bulk_sales_metrics(user_id)
         for p in products:
             if p['stock'] > 0:
-                recent_avg = get_moving_average_range(p['id'], 3, 0)
-                prev_avg = get_moving_average_range(p['id'], 6, 3)
+                pid = p['id']
+                p_metrics = metrics.get(pid, {'avg_last_3': 0, 'avg_prev_3': 0})
+                recent_avg = p_metrics['avg_last_3']
+                prev_avg = p_metrics['avg_prev_3']
                 if prev_avg > 0 and recent_avg > prev_avg * 1.5:
                     high_potential = f"{p['name']} (Sales trending up)"
                     break
