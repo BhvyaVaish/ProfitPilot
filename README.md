@@ -1,4 +1,5 @@
 <div align="center">
+   
 # ProfitPilot
 
 > **Intelligent Inventory & Business Management for MSMEs.**
@@ -11,8 +12,9 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com)
 
-</div>
+
 ---
+</div>
 
 ## 📌 What is ProfitPilot?
 
