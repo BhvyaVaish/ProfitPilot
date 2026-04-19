@@ -7,7 +7,7 @@
  *   - Everything else → Network-first
  */
 
-const CACHE_VERSION = 'profitpilot-v3.1';
+const CACHE_VERSION = 'profitpilot-v3.2';
 
 const PRECACHE_URLS = [
   '/',

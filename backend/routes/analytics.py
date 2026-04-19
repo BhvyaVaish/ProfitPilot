@@ -37,8 +37,8 @@ def get_dashboard_full():
 
         sales_graph = {
             "labels": [d['label'] for d in graph_data],
-            "revenue": [d['revenue'] for d in graph_data],
-            "units": [d['units'] for d in graph_data]
+            "revenue": [float(d['revenue'] or 0) for d in graph_data],
+            "units": [int(d['units'] or 0) for d in graph_data]
         }
 
         # 2. Top Products (Catalog Performance)
@@ -68,7 +68,7 @@ def get_dashboard_full():
             GROUP BY p.category
             ORDER BY total_revenue DESC
         """, (user_id,)).fetchall()
-        category_breakdown = [{"category": c['category'], "revenue": round(c['total_revenue'], 2)} for c in cat_data]
+        category_breakdown = [{"category": c['category'], "revenue": round(float(c['total_revenue'] or 0), 2)} for c in cat_data]
 
         # 9. Summary stats
         total_rev = float(conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['t'])

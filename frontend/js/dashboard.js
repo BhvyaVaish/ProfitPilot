@@ -168,6 +168,23 @@ async function loadFullDashboard() {
 
     } catch (e) {
         console.error("Dashboard failed to load", e);
+        
+        // Hide loaders on error
+        document.querySelectorAll('.dashboard-loader').forEach(l => l.style.display = 'none');
+        
+        // Show error state in the first card
+        const firstCanvas = document.querySelector('canvas');
+        if (firstCanvas) {
+            const parent = firstCanvas.parentElement;
+            let errEl = parent.querySelector('.dashboard-error');
+            if (!errEl) {
+                errEl = document.createElement('div');
+                errEl.className = 'dashboard-error text-center text-red';
+                errEl.style.padding = '40px 10px';
+                parent.appendChild(errEl);
+            }
+            errEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:8px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><br>Failed to load dashboard data. Please try refreshing.`;
+        }
     }
 }
 
