@@ -3,8 +3,10 @@
 # ProfitPilot
 
 **Intelligent Inventory & Business Management for MSMEs.** <br>
-> *Smart inventory, Real-time AI insights, seamless billing, GST tools and much more.* <br>
+
 </div>
+
+> *Smart inventory, Real-time AI insights, seamless billing, GST tools and much more.* <br>
 > *Built for Indian small businesses.* <br>
 
 <div align="center">
