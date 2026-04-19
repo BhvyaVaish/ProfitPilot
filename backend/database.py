@@ -212,8 +212,26 @@ class _PgConnection:
 #  PUBLIC API
 # ══════════════════════════════════════════════════════════════════════════════
 
-def get_connection():
-    """Return a DB connection. Callers use the same interface regardless of backend."""
+from flask import g, has_request_context
+
+class _DummyCloseConnection:
+    """Wraps a connection to ignore .close() calls during a request, allowing safe sharing."""
+    def __init__(self, conn):
+        self._conn = conn
+    def execute(self, *args, **kwargs):
+        return self._conn.execute(*args, **kwargs)
+    def cursor(self, *args, **kwargs):
+        return self._conn.cursor(*args, **kwargs)
+    def commit(self):
+        self._conn.commit()
+    def close(self):
+        pass # Ignored. Handled by app.teardown_appcontext
+    def __enter__(self):
+        return self
+    def __exit__(self, *_):
+        self.commit()
+
+def _create_new_connection():
     if USE_POSTGRES:
         raw = psycopg2.connect(DATABASE_URL)
         return _PgConnection(raw)
@@ -222,6 +240,14 @@ def get_connection():
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         return conn
+
+def get_connection():
+    """Return a DB connection. Caches per-request if inside Flask to prevent connection exhaustion."""
+    if has_request_context():
+        if 'db_conn' not in g:
+            g.db_conn = _create_new_connection()
+        return _DummyCloseConnection(g.db_conn)
+    return _create_new_connection()
 
 
 # ══════════════════════════════════════════════════════════════════════════════

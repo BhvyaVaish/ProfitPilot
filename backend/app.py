@@ -15,7 +15,7 @@ import os
 # from the repo root via api/index.py
 sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask
+from flask import Flask, g
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -91,6 +91,12 @@ def chatbot_page():
 def about_page():
     return app.send_static_file('about.html')
 
+
+@app.teardown_appcontext
+def close_db_connection(exception):
+    db_conn = g.pop('db_conn', None)
+    if db_conn is not None:
+        db_conn.close()
 
 # ── One-time initialisation ─────────────────────────────────────────────────
 
