@@ -67,6 +67,30 @@ def onboarding_page():
 def profile_page():
     return app.send_static_file('profile.html')
 
+@app.route('/dashboard')
+def dashboard_page():
+    return app.send_static_file('dashboard.html')
+
+@app.route('/inventory')
+def inventory_page():
+    return app.send_static_file('inventory.html')
+
+@app.route('/billing')
+def billing_page():
+    return app.send_static_file('billing.html')
+
+@app.route('/tax')
+def tax_page():
+    return app.send_static_file('tax.html')
+
+@app.route('/chatbot')
+def chatbot_page():
+    return app.send_static_file('chatbot.html')
+
+@app.route('/about')
+def about_page():
+    return app.send_static_file('about.html')
+
 
 # ── One-time initialisation ─────────────────────────────────────────────────
 
