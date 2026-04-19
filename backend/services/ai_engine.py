@@ -280,7 +280,7 @@ def get_home_mini_insights(user_id='demo'):
         LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-30 days')
         WHERE p.user_id = ? 
         GROUP BY p.id 
-        HAVING total_qty > 0
+        HAVING COALESCE(SUM(s.quantity), 0) > 0
         ORDER BY total_qty DESC 
         LIMIT 1
     """, (user_id,)).fetchone()
