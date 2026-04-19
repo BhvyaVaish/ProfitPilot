@@ -78,7 +78,7 @@ async function loadHomeSummary() {
                 paContainer.innerHTML = `
                     <div style="background: rgba(37,99,235,0.06); padding: 16px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-blue);">
                         <strong style="color: var(--accent-blue); display:block; margin-bottom:4px;">Welcome to ProfitPilot!</strong>
-                        <span class="text-muted" style="font-size:0.9rem;">To see AI insights and priority actions, please <a href="inventory.html" style="color:var(--accent-blue); font-weight:600; text-decoration:none;">Add Products</a> or import your inventory CSV.</span>
+                        <span class="text-muted" style="font-size:0.9rem;">To see AI insights and priority actions, please <a href="inventory" style="color:var(--accent-blue); font-weight:600; text-decoration:none;">Add Products</a> or import your inventory CSV.</span>
                     </div>
                 `;
             } else {
@@ -152,7 +152,7 @@ async function loadHomeSummary() {
                                             <div style="font-size:0.85rem; font-weight:600; color:var(--text-primary);">${o.item}</div>
                                             <div style="font-size:0.72rem; color:var(--text-secondary);">High potential for ${o.festival}</div>
                                         </div>
-                                        <button onclick="window.location.href='inventory.html?suggest=${encodeURIComponent(o.item)}'" 
+                                        <button onclick="window.location.href='inventory?suggest=${encodeURIComponent(o.item)}'" 
                                                 style="padding:5px 10px; font-size:0.7rem; background:var(--accent-blue); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:600;">
                                             Add
                                         </button>

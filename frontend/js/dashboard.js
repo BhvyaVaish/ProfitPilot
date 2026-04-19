@@ -36,7 +36,7 @@ async function loadFullDashboard() {
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" style="margin-bottom:12px; opacity:0.8;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                         <h4 style="color:var(--text-primary); margin-bottom:6px;">No Data Available</h4>
                         <p class="text-muted" style="font-size:0.9rem;">Upload your inventory or start billing to unlock actionable AI insights and revenue charts.</p>
-                        <a href="inventory.html" class="btn btn-primary" style="margin-top:12px; display:inline-block; text-decoration:none;">Go to Inventory</a>
+                        <a href="inventory" class="btn btn-primary" style="margin-top:12px; display:inline-block; text-decoration:none;">Go to Inventory</a>
                     </div>
                 `;
                 parent.appendChild(emptyState);
