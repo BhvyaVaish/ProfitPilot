@@ -71,8 +71,8 @@ def get_dashboard_full():
         category_breakdown = [{"category": c['category'], "revenue": round(c['total_revenue'], 2)} for c in cat_data]
 
         # 9. Summary stats
-        total_rev = conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['t']
-        prev_rev = conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-14 days') AND s.sold_at < date('now', '-7 days')", (user_id,)).fetchone()['t']
+        total_rev = float(conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['t'])
+        prev_rev = float(conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-14 days') AND s.sold_at < date('now', '-7 days')", (user_id,)).fetchone()['t'])
         total_orders = conn.execute("SELECT COUNT(DISTINCT id) as c FROM bills WHERE user_id = ? AND created_at >= date('now', '-7 days')", (user_id,)).fetchone()['c']
 
         conn.close()

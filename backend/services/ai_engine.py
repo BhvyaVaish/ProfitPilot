@@ -22,9 +22,9 @@ def get_bulk_sales_metrics(user_id='demo'):
         pid = r['product_id']
         metrics[pid] = {
             'last_7_days_sales': r['last_7_days_sales'],
-            'avg_last_7': r['last_7_days_sales'] / 7.0,
-            'avg_last_3': r['last_3_days_sales'] / 3.0,
-            'avg_prev_3': r['prev_3_days_sales'] / 3.0
+            'avg_last_7': float(r['last_7_days_sales']) / 7.0,
+            'avg_last_3': float(r['last_3_days_sales']) / 3.0,
+            'avg_prev_3': float(r['prev_3_days_sales']) / 3.0
         }
     return metrics
 
@@ -355,7 +355,7 @@ def get_home_quick_summary(user_id='demo'):
     out_of_stock_count = 0
 
     for r in rows:
-        avg_daily_sales = r['past_7d_sales'] / 7.0
+        avg_daily_sales = float(r['past_7d_sales']) / 7.0
         threshold = max(5, avg_daily_sales * 2)
         if r['stock'] == 0:
             out_of_stock_count += 1
@@ -363,9 +363,9 @@ def get_home_quick_summary(user_id='demo'):
             low_stock_count += 1
 
     return {
-        "today_sales": today_sales or 0,
-        "week_sales": week_sales or 0,
-        "week_change": week_change,
+        "today_sales": float(today_sales or 0),
+        "week_sales": float(week_sales or 0),
+        "week_change": float(week_change),
         "low_stock_count": low_stock_count,
         "out_of_stock_count": out_of_stock_count,
         "total_products": total_products
@@ -388,8 +388,8 @@ def get_business_health_score(user_id='demo'):
     factors.append({"name": "Stock Availability", "score": stock_score, "max": 30})
 
     # Factor 2: Sales Momentum (0-25 pts)
-    week_sales = conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['s']
-    prev_week = conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-14 days') AND sold_at < date('now', '-7 days')", (user_id,)).fetchone()['s']
+    week_sales = float(conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['s'])
+    prev_week = float(conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-14 days') AND sold_at < date('now', '-7 days')", (user_id,)).fetchone()['s'])
     if prev_week > 0:
         momentum = min(1.0, max(0, (week_sales / prev_week)))
     else:
