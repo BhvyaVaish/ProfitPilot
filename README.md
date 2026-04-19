@@ -1,8 +1,9 @@
+<div align="center">
 # ProfitPilot
 
 > **Intelligent Inventory & Business Management for MSMEs.**
-> *Smart inventory. Real-time AI insights, seamless billing, GST tools and much more.
-> Built for Indian small businesses.*
+> *Smart inventory, Real-time AI insights, seamless billing, GST tools and much more.*
+> *Built for Indian small businesses.*
 
 [![Python](https://img.shields.io/badge/Python-3.x-blue?style=flat-square&logo=python)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey?style=flat-square&logo=flask)](https://flask.palletsprojects.com)
@@ -10,6 +11,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com)
 
+</div>
 ---
 
 ## 📌 What is ProfitPilot?
