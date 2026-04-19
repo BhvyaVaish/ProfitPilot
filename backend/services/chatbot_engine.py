@@ -2,9 +2,8 @@
 chatbot_engine.py — Enhanced keyword-based chatbot with vast vocabulary coverage,
 tax jargon explanations, and business intelligence.
 """
-from services.ai_engine import get_restock_suggestions, get_dead_stock, get_prioritized_alerts, get_home_mini_insights
+from services.ai_engine import get_restock_suggestions, get_dead_stock, get_prioritized_alerts, get_home_mini_insights, get_bulk_sales_metrics
 from services.festival_service import get_upcoming_festivals, match_festivals_to_inventory
-from services.ai_engine import get_moving_average_range, get_total_sales_range
 from models import get_all_products, get_user_profile
 from database import get_connection
 
@@ -267,10 +266,13 @@ def get_response(message: str, user_id='demo') -> str:
         festivals = result['festivals']
 
         products = get_all_products(user_id)
+        metrics = get_bulk_sales_metrics(user_id)
         high_potential = []
         for p in products:
-            recent_avg = get_moving_average_range(p['id'], 3, 0)
-            prev_avg   = get_moving_average_range(p['id'], 6, 3)
+            pid = p['id']
+            p_metrics = metrics.get(pid, {'avg_last_3': 0, 'avg_prev_3': 0})
+            recent_avg = p_metrics['avg_last_3']
+            prev_avg = p_metrics['avg_prev_3']
             if prev_avg > 0 and recent_avg >= prev_avg * 1.2:
                 pct = round(((recent_avg - prev_avg) / prev_avg) * 100)
                 high_potential.append(f"{p['name']} -- Sales up {pct}% in the last 3 days")
@@ -355,7 +357,7 @@ def get_response(message: str, user_id='demo') -> str:
         low = []
         out = []
         for r in rows:
-            avg_daily = r['past_7d_sales'] / 7.0
+            avg_daily = float(r['past_7d_sales']) / 7.0
             thresh = max(5, avg_daily * 2)
             if r['stock'] == 0:
                 out.append(r['id'])
@@ -376,11 +378,14 @@ def get_response(message: str, user_id='demo') -> str:
     if matched:
         p = matched[0]
         pid = p['id']
-        last_7 = get_total_sales_range(pid, 7)
-        avg_daily = last_7 / 7.0
+        metrics = get_bulk_sales_metrics(user_id)
+        p_metrics = metrics.get(pid, {'last_7_days_sales': 0, 'avg_last_7': 0, 'avg_last_3': 0, 'avg_prev_3': 0})
+        
+        last_7 = p_metrics['last_7_days_sales']
+        avg_daily = p_metrics['avg_last_7']
         thresh = max(5, avg_daily * 2)
-        recent_avg = get_moving_average_range(pid, 3, 0)
-        prev_avg = get_moving_average_range(pid, 6, 3)
+        recent_avg = p_metrics['avg_last_3']
+        prev_avg = p_metrics['avg_prev_3']
 
         trend = "stable"
         if prev_avg > 0:
