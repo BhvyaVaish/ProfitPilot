@@ -151,6 +151,35 @@ function _showAuthenticatedUI(user) {
       </div>
     `;
   }
+
+  // Update mobile nav drawer with user profile
+  const mobileNav = document.querySelector('.mobile-nav');
+  if (mobileNav) {
+    let mobileProfile = document.getElementById('mobile-user-profile');
+    if (!mobileProfile) {
+      mobileProfile = document.createElement('div');
+      mobileProfile.id = 'mobile-user-profile';
+      mobileProfile.style.cssText = "padding: 16px; border-top: 1px solid var(--border); margin-top: auto;";
+      mobileNav.appendChild(mobileProfile);
+    }
+    const displayName = user.displayName || user.email.split('@')[0];
+    const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    
+    mobileProfile.innerHTML = `
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <div style="width:36px; height:36px; border-radius:50%; background:var(--accent-blue); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">${initials}</div>
+        <div>
+          <div style="font-weight:600; font-size:0.95rem; color:var(--text-primary);">${displayName}</div>
+          <div style="font-size:0.8rem; color:var(--text-muted);">${user.email}</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <a href="/profile" style="color:var(--text-secondary); text-decoration:none; font-size:0.95rem; display:flex; align-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>My Profile</a>
+        <div onclick="flushUserData(); if(typeof closeMobileNav==='function') closeMobileNav();" style="color:var(--accent-orange); font-size:0.95rem; display:flex; align-items:center; cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>Flush Data</div>
+        <div onclick="signOutUser(); if(typeof closeMobileNav==='function') closeMobileNav();" style="color:var(--accent-red); font-size:0.95rem; display:flex; align-items:center; cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>Sign Out</div>
+      </div>
+    `;
+  }
 }
 
 function _showGuestUI() {
@@ -170,6 +199,24 @@ function _showGuestUI() {
     profileEl.innerHTML = `
       <a href="/auth" style="display:flex; align-items:center; gap:6px; text-decoration:none; color:var(--accent-blue); font-size:0.85rem; font-weight:600; padding:6px 14px; border:1px solid var(--accent-blue); border-radius:20px; transition:all 0.2s;" onmouseover="this.style.background='var(--accent-blue)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--accent-blue)'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+        Sign In
+      </a>
+    `;
+  }
+
+  // Update mobile user profile to sign-in link
+  const mobileNav = document.querySelector('.mobile-nav');
+  if (mobileNav) {
+    let mobileProfile = document.getElementById('mobile-user-profile');
+    if (!mobileProfile) {
+      mobileProfile = document.createElement('div');
+      mobileProfile.id = 'mobile-user-profile';
+      mobileProfile.style.cssText = "padding: 16px; border-top: 1px solid var(--border); margin-top: auto; text-align:center;";
+      mobileNav.appendChild(mobileProfile);
+    }
+    mobileProfile.innerHTML = `
+      <a href="/auth" style="display:flex; align-items:center; justify-content:center; gap:6px; background:var(--accent-blue); color:#fff; font-weight:600; padding:12px 14px; border-radius:8px; text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
         Sign In
       </a>
     `;

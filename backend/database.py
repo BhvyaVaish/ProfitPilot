@@ -31,9 +31,7 @@ _SQLITE_PATH = os.path.join(os.path.dirname(__file__), "profitpilot.db")
 _TABLES_WITH_SERIAL_ID = {"products", "sales", "bills", "alerts", "festival_demands"}
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  SQL TRANSLATION — SQLite dialect → PostgreSQL dialect
-# ══════════════════════════════════════════════════════════════════════════════
+# ── SQL TRANSLATION: SQLite -> PostgreSQL ──────────────────────────────────────
 
 def _translate_sql(sql: str) -> str:
     """Translate SQLite-flavoured SQL to PostgreSQL-compatible SQL.
@@ -128,9 +126,7 @@ def _translate_sql(sql: str) -> str:
     return sql
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-#  UNIFIED CONNECTION WRAPPER
-# ══════════════════════════════════════════════════════════════════════════════
+# ── UNIFIED CONNECTION WRAPPER ────────────────────────────────────────────────
 
 class _PgCursor:
     """
@@ -258,6 +254,7 @@ _SQLITE_SCHEMA = [
       name        TEXT NOT NULL,
       category    TEXT NOT NULL DEFAULT 'general',
       price       REAL NOT NULL,
+      cost_price  REAL DEFAULT NULL,
       stock       INTEGER NOT NULL DEFAULT 0,
       created_at  TEXT DEFAULT (datetime('now')),
       UNIQUE(user_id, name)
@@ -327,6 +324,7 @@ _POSTGRES_SCHEMA = [
       name        TEXT NOT NULL,
       category    TEXT NOT NULL DEFAULT 'general',
       price       REAL NOT NULL,
+      cost_price  REAL DEFAULT NULL,
       stock       INTEGER NOT NULL DEFAULT 0,
       created_at  TIMESTAMP DEFAULT NOW(),
       UNIQUE(user_id, name)
@@ -378,6 +376,11 @@ def init_db():
         cur = raw.cursor()
         for stmt in _POSTGRES_SCHEMA:
             cur.execute(stmt)
+        # Migration: add cost_price column if missing
+        try:
+            cur.execute("ALTER TABLE products ADD COLUMN cost_price REAL DEFAULT NULL")
+        except Exception:
+            pass  # Column already exists
         raw.commit()
         cur.close()
         conn = _PgConnection(raw)
@@ -389,6 +392,11 @@ def init_db():
         conn.execute("PRAGMA foreign_keys = ON")
         for stmt in _SQLITE_SCHEMA:
             conn.execute(stmt)
+        # Migration: add cost_price column if missing
+        try:
+            conn.execute("ALTER TABLE products ADD COLUMN cost_price REAL DEFAULT NULL")
+        except Exception:
+            pass  # Column already exists
         conn.commit()
         seed_data(conn)
         conn.close()

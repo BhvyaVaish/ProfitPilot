@@ -35,6 +35,7 @@ function _initBilling() {
     document.getElementById('generate-bill-btn').addEventListener('click', () => {
         if (_requireBillingLogin('generate a bill')) generateBill();
     });
+    _initBillSearch();
 }
 
 // auth-guard fires 'auth-ready' — if it already fired before this script ran,
@@ -153,6 +154,33 @@ function renderCart() {
 
     document.getElementById('cart-total').innerText = formatCurrency(total);
     document.getElementById('generate-bill-btn').disabled = false;
+
+    // Low stock warning
+    const warnDiv = document.getElementById('low-stock-warning');
+    if (warnDiv) {
+        const warnings = [];
+        cart.forEach(item => {
+            const prod = products.find(p => p.id === item.product_id);
+            if (prod) {
+                const remainAfter = prod.stock - item.quantity;
+                if (remainAfter <= 0) {
+                    warnings.push(`<strong>${item.name}</strong> will be <span style="color:var(--accent-red);font-weight:700;">OUT OF STOCK</span> after this bill`);
+                } else if (remainAfter < 5) {
+                    warnings.push(`<strong>${item.name}</strong> will have only <span style="color:var(--accent-yellow);font-weight:700;">${remainAfter} units</span> left`);
+                }
+            }
+        });
+        if (warnings.length > 0) {
+            warnDiv.innerHTML = `<div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-sm); padding:10px 14px; margin-top:12px; font-size:0.85rem;">
+                <div style="font-weight:600; color:var(--accent-yellow); margin-bottom:6px;">⚠ Stock Warning</div>
+                ${warnings.map(w => `<div style="margin:3px 0; color:var(--text-secondary);">${w}</div>`).join('')}
+            </div>`;
+            warnDiv.style.display = 'block';
+        } else {
+            warnDiv.style.display = 'none';
+            warnDiv.innerHTML = '';
+        }
+    }
 }
 
 async function generateBill() {
@@ -172,6 +200,7 @@ async function generateBill() {
         showToast('Bill Generated Successfully!', 'success');
         cart = [];
         renderCart();
+        document.getElementById('customer-name').value = '';
         await loadProducts();
 
         showInvoiceModal(res.bill);
@@ -232,6 +261,30 @@ function showInvoiceModal(bill) {
     document.getElementById('inv-cgst').innerText     = `Rs.${cgst.toFixed(2)}`;
     document.getElementById('inv-sgst').innerText     = `Rs.${sgst.toFixed(2)}`;
     document.getElementById('inv-total').innerText    = `Rs.${grandTotal.toFixed(2)}`;
+
+    // Profit estimate
+    const profitDiv = document.getElementById('inv-profit-estimate');
+    if (profitDiv) {
+        const estimatedCost = bill.items.reduce((sum, i) => {
+            const prod = products.find(p => p.id === i.product_id);
+            const costPerUnit = (prod && prod.effective_cost) ? prod.effective_cost : (i.price * 0.7);
+            return sum + (costPerUnit * i.quantity);
+        }, 0);
+        const estimatedProfit = subtotal - estimatedCost;
+        const marginPct = subtotal > 0 ? ((estimatedProfit / subtotal) * 100).toFixed(1) : 0;
+        profitDiv.innerHTML = `
+            <div style="border-top:1px dashed var(--border); margin-top:12px; padding-top:10px;">
+                <div class="flex-between mb-1" style="font-size:0.85rem;">
+                    <span style="color:var(--text-muted);">Est. Cost</span>
+                    <span>Rs.${estimatedCost.toFixed(2)}</span>
+                </div>
+                <div class="flex-between" style="font-size:0.95rem; font-weight:700;">
+                    <span style="color:var(--accent-green);">Est. Profit (${marginPct}%)</span>
+                    <span style="color:var(--accent-green);">Rs.${estimatedProfit.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+    }
 }
 
 function closeInvoice() {
@@ -245,30 +298,63 @@ function printBill() {
 
 async function loadRecentBills() {
     try {
-        const res = await apiCall('/api/bills?limit=5');
-        const container = document.getElementById('recent-bills');
-        container.innerHTML = '';
-
-        if (!res.bills || res.bills.length === 0) {
-            container.innerHTML = '<span class="text-muted" style="font-size:0.85rem;">No bills yet. Generate your first bill above.</span>';
-            return;
-        }
-
-        res.bills.forEach(b => {
-            const items = b.items || [];
-            const itemCount = items.reduce((sum, i) => sum + (i.quantity || 0), 0);
-            container.innerHTML += `
-                <div class="recent-bill-item">
-                    <div>
-                        <strong style="font-size:0.88rem; color:var(--text-primary);">${b.bill_number}</strong>
-                        ${b.customer_name ? `<span class="text-muted"> - ${b.customer_name}</span>` : ''}
-                        <div class="text-muted" style="font-size:0.78rem;">${b.created_at} | ${itemCount} items</div>
-                    </div>
-                    <div style="font-weight:700; color:var(--accent-blue);">Rs.${Number(b.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
-                </div>
-            `;
-        });
+        const res = await apiCall('/api/bills?limit=10');
+        _renderBillList(res.bills || [], document.getElementById('recent-bills'));
     } catch (e) {
         console.error('Failed to load recent bills', e);
     }
 }
+
+function _renderBillList(bills, container) {
+    container.innerHTML = '';
+    if (!bills || bills.length === 0) {
+        container.innerHTML = '<span class="text-muted" style="font-size:0.85rem;">No bills found.</span>';
+        return;
+    }
+
+    bills.forEach(b => {
+        const items = b.items || [];
+        const itemCount = items.reduce((sum, i) => sum + (i.quantity || 0), 0);
+        const div = document.createElement('div');
+        div.className = 'recent-bill-item';
+        div.style.cursor = 'pointer';
+        div.onclick = () => viewBillDetails(b);
+        div.innerHTML = `
+            <div>
+                <strong style="font-size:0.88rem; color:var(--text-primary);">${b.bill_number}</strong>
+                ${b.customer_name ? `<span class="text-muted"> - ${b.customer_name}</span>` : ''}
+                <div class="text-muted" style="font-size:0.78rem;">${b.created_at} | ${itemCount} items</div>
+            </div>
+            <div style="font-weight:700; color:var(--accent-blue);">Rs.${Number(b.total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function viewBillDetails(bill) {
+    showInvoiceModal(bill);
+}
+
+// Bill search with debounce
+let _billSearchTimer = null;
+function _initBillSearch() {
+    const input = document.getElementById('bill-search-input');
+    if (!input) return;
+    input.addEventListener('input', (e) => {
+        clearTimeout(_billSearchTimer);
+        _billSearchTimer = setTimeout(async () => {
+            const q = e.target.value.trim();
+            if (!q) {
+                loadRecentBills();
+                return;
+            }
+            try {
+                const res = await apiCall(`/api/bills/search?q=${encodeURIComponent(q)}`);
+                _renderBillList(res.bills || [], document.getElementById('recent-bills'));
+            } catch (err) {
+                console.error('Bill search failed', err);
+            }
+        }, 350);
+    });
+}
+

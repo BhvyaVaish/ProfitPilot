@@ -137,3 +137,36 @@ def get_bill(bill_id):
         return jsonify({"bill": b_dict}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@billing_bp.route('/api/bills/search', methods=['GET'])
+@optional_auth
+def search_bills():
+    """Search bills by bill number or customer name."""
+    try:
+        user_id = g.user_id
+        q = request.args.get('q', '').strip()
+        if not q:
+            return jsonify({"bills": []}), 200
+
+        conn = get_connection()
+        bills = conn.execute("""
+            SELECT id, bill_number, customer_name, items_json, subtotal, gst_amount, total,
+                   strftime('%d-%m-%Y %H:%M', created_at) as created_at
+            FROM bills
+            WHERE user_id = ? AND (
+                LOWER(bill_number) LIKE LOWER(?) OR
+                LOWER(customer_name) LIKE LOWER(?)
+            )
+            ORDER BY id DESC LIMIT 20
+        """, (user_id, f'%{q}%', f'%{q}%')).fetchall()
+        conn.close()
+
+        result = []
+        for b in bills:
+            b_dict = dict(b)
+            b_dict['items'] = json.loads(b_dict['items_json'])
+            result.append(b_dict)
+
+        return jsonify({"bills": result}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

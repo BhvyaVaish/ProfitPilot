@@ -1,17 +1,22 @@
-/* Header */
+/* ══════════════════════════════════════════════════════════════════════════
+   LAYOUT — Header, Navigation, Grid, Footer
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Header ───────────────────────────────────────────────────────── */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 40px;
+  padding: 14px 40px;
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.03);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .logo {
@@ -23,8 +28,11 @@ header {
   align-items: center;
   gap: 10px;
   white-space: nowrap;
+  flex-shrink: 0;
+  z-index: 110;
 }
 
+/* ── Desktop Navigation ───────────────────────────────────────────── */
 .top-nav {
   display: flex;
   align-items: center;
@@ -43,12 +51,13 @@ header {
   color: var(--text-muted);
   font-size: 0.88rem;
   padding: 8px 14px;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   border-radius: 7px;
   font-weight: 500;
   white-space: nowrap;
   font-family: var(--font-body);
+  position: relative;
 }
 
 .nav-item:hover {
@@ -72,6 +81,45 @@ header {
   animation: navClickGlow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* ── Hamburger Button (hidden on desktop) ─────────────────────────── */
+.hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  z-index: 110;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hamburger-btn:hover { background: rgba(0,0,0,0.05); }
+
+.hamburger-btn svg {
+  display: block;
+  color: var(--text-primary);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hamburger-btn.active svg {
+  transform: rotate(90deg);
+}
+
+/* ── Mobile Nav Overlay (hidden on desktop) ───────────────────────── */
+.mobile-nav-overlay {
+  display: none;
+}
+
+/* ── Right side controls ──────────────────────────────────────────── */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 110;
+}
+
 .user-profile {
   display: flex;
   align-items: center;
@@ -79,15 +127,23 @@ header {
   flex-shrink: 0;
   min-width: 38px;
   min-height: 38px;
-  position: relative; /* Useful for absolutely positioned children like dropdowns */
+  position: relative;
 }
 
+/* ── Main Content ─────────────────────────────────────────────────── */
 .main-content {
   flex: 1;
   margin: 0 auto;
   padding: 28px 40px;
   max-width: 1200px;
   width: 100%;
+  /* Stagger-animate children */
+  animation: contentFadeIn 0.4s ease forwards;
+}
+
+@keyframes contentFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .page-header {
@@ -99,7 +155,7 @@ header {
   gap: 12px;
 }
 
-/* Grid Layouts */
+/* ── Grid Layouts ─────────────────────────────────────────────────── */
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -121,10 +177,11 @@ header {
   margin-bottom: 24px;
 }
 
-/* Footer */
+/* ── Footer ───────────────────────────────────────────────────────── */
 .app-footer {
   text-align: center;
   padding: 20px 40px;
+  padding-bottom: calc(20px + var(--safe-bottom));
   color: var(--text-muted);
   font-size: 0.8rem;
   border-top: 1px solid var(--border);
@@ -133,43 +190,159 @@ header {
 
 .app-footer a { color: var(--accent-blue); }
 
-/* ── Responsive Breakpoints ──────────────────────────────────── */
 
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≤1024px) ─────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
   header { padding: 14px 24px; }
   .main-content { padding: 24px; }
+  .top-nav { margin-left: 20px; }
 }
 
+/* ── Mobile (≤768px) — Hamburger Nav ──────────────────────────────── */
 @media (max-width: 768px) {
   header {
-    flex-direction: column;
-    gap: 10px;
     padding: 12px 16px;
+    gap: 0;
   }
+
+  /* Show hamburger */
+  .hamburger-btn { display: flex; }
+
+  /* Hide desktop nav */
   .top-nav {
-    width: 100%;
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding: 4px;
-    -webkit-overflow-scrolling: touch;
+    display: none;
   }
-  .top-nav::-webkit-scrollbar { display: none; }
-  .nav-item { padding: 6px 10px; font-size: 0.82rem; }
-  .user-profile { position: absolute; right: 16px; top: 16px; }
+
+  /* Mobile nav overlay */
+  .mobile-nav-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 105;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .mobile-nav-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Mobile nav drawer */
+  .mobile-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 280px;
+    max-width: 85vw;
+    height: 100%;
+    background: var(--bg-card);
+    box-shadow: -8px 0 30px rgba(0,0,0,0.12);
+    z-index: 106;
+    padding: 24px 20px;
+    padding-top: calc(24px + var(--safe-top));
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+  }
+
+  .mobile-nav-overlay.active .mobile-nav {
+    transform: translateX(0);
+  }
+
+  .mobile-nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mobile-nav-header .logo {
+    font-size: 1.1rem;
+  }
+
+  .mobile-nav-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    transition: background 0.2s, color 0.2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-close:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    font-family: var(--font-body);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item:hover,
+  .mobile-nav-item:active {
+    background: rgba(37, 99, 235, 0.06);
+    color: var(--accent-blue);
+  }
+
+  .mobile-nav-item.active {
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--accent-blue);
+    font-weight: 600;
+  }
+
+  /* Hide lang toggle from header on mobile — move into drawer */
+  header .lang-toggle { display: none; }
+
+  .user-profile { min-width: 34px; min-height: 34px; }
+
   .main-content { padding: 16px; }
   .page-header { flex-direction: column; align-items: flex-start; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .grid-3 { grid-template-columns: 1fr; gap: 12px; }
   .grid-2 { grid-template-columns: 1fr; gap: 12px; }
-  .app-footer { padding: 16px; }
+  .app-footer { padding: 16px; padding-bottom: calc(16px + var(--safe-bottom)); }
+
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1rem; }
 }
 
+/* ── Small phones (≤480px) ────────────────────────────────────────── */
 @media (max-width: 480px) {
   .grid-4 { grid-template-columns: 1fr; }
   .main-content { padding: 12px; }
   header { padding: 10px 12px; }
   .logo { font-size: 1.05rem; }
-  h2 { font-size: 1.25rem; }
+  h2 { font-size: 1.2rem; }
 }

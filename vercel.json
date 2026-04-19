@@ -55,6 +55,14 @@
       "dest": "frontend/about.html"
     },
     {
+      "src": "/manifest.json",
+      "dest": "frontend/manifest.json"
+    },
+    {
+      "src": "/sw.js",
+      "dest": "frontend/sw.js"
+    },
+    {
       "src": "/favicon.png",
       "dest": "frontend/favicon.png"
     },

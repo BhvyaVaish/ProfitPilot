@@ -4,28 +4,21 @@ import base64
 import functools
 from flask import request, jsonify, g
 
-# Firebase Admin SDK
 import firebase_admin
 from firebase_admin import credentials, auth as firebase_auth
 
 _firebase_app = None
 
+
 def init_firebase_admin():
     """Initialize Firebase Admin SDK.
-
-    Supports two credential sources (checked in order):
-    1. FIREBASE_SERVICE_ACCOUNT_JSON env var — base64-encoded JSON string.
-       Set this in the Vercel Dashboard for production.
-    2. firebase-service-account.json file alongside this module (local dev).
-
-    If neither is found the server still starts but all authenticated endpoints
-    will fall back to unverified JWT decoding (development only).
+    Checks: 1) FIREBASE_SERVICE_ACCOUNT_JSON env var (base64), 2) local JSON file.
+    Falls back to unverified JWT decoding if neither is found (dev only).
     """
     global _firebase_app
     if _firebase_app:
         return _firebase_app
 
-    # ── Option 1: Base64-encoded JSON from environment variable ──────────
     sa_b64 = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
     if sa_b64:
         try:
@@ -38,7 +31,6 @@ def init_firebase_admin():
         except Exception as e:
             print(f"[WARNING] Could not init Firebase from env var: {e}")
 
-    # ── Option 2: Local JSON file ─────────────────────────────────────────
     sa_path = os.getenv(
         "FIREBASE_SERVICE_ACCOUNT_PATH",
         os.path.join(os.path.dirname(__file__), "firebase-service-account.json"),
@@ -49,29 +41,22 @@ def init_firebase_admin():
         print("[OK] Firebase Admin SDK initialized from file.")
         return _firebase_app
 
-    print("[WARNING] Firebase service account not found. Auth verification will use unverified JWT decoding — for local dev only.")
+    print("[WARNING] Firebase service account not found. Using unverified JWT decoding (dev only).")
     return None
 
 
-
 def _decode_jwt_unverified(token):
-    """Decode a JWT payload without verifying the signature.
-    Used as fallback when Firebase Admin SDK is not configured.
-    ONLY for local development — do not use in production without a service account.
-    """
+    """Decode JWT payload without signature verification (dev fallback only)."""
     try:
-        # JWT is: header.payload.signature (base64url encoded)
         parts = token.split('.')
         if len(parts) != 3:
             return None
-        # Add padding if necessary
         payload_b64 = parts[1]
         padding = 4 - len(payload_b64) % 4
         if padding != 4:
             payload_b64 += '=' * padding
         payload_bytes = base64.urlsafe_b64decode(payload_b64)
-        payload = json.loads(payload_bytes)
-        return payload
+        return json.loads(payload_bytes)
     except Exception:
         return None
 
@@ -79,19 +64,13 @@ def _decode_jwt_unverified(token):
 def _verify_token(token):
     """Verify a Firebase ID token and return decoded claims."""
     if _firebase_app:
-        # Production path: full verification
         try:
-            decoded = firebase_auth.verify_id_token(token, check_revoked=True)
-            return decoded
-        except firebase_auth.RevokedIdTokenError:
-            return None
-        except firebase_auth.InvalidIdTokenError:
+            return firebase_auth.verify_id_token(token, check_revoked=True)
+        except (firebase_auth.RevokedIdTokenError, firebase_auth.InvalidIdTokenError):
             return None
         except Exception:
             return None
     else:
-        # Development fallback: decode without verification
-        # Extracts uid/email from JWT payload without checking the signature
         payload = _decode_jwt_unverified(token)
         if payload and 'user_id' in payload:
             return {
@@ -111,10 +90,7 @@ def _extract_token():
 
 
 def require_auth(f):
-    """Decorator: endpoint requires a valid Firebase auth token.
-    Sets g.user_id and g.user_email on success.
-    Returns 401 on failure.
-    """
+    """Decorator: requires valid Firebase auth token. Sets g.user_id on success."""
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         token = _extract_token()
@@ -133,10 +109,7 @@ def require_auth(f):
 
 
 def optional_auth(f):
-    """Decorator: endpoint works with or without auth.
-    If authenticated: sets g.user_id to the Firebase UID.
-    If not authenticated: sets g.user_id to 'demo'.
-    """
+    """Decorator: works with or without auth. Falls back to 'demo' user if unauthenticated."""
     @functools.wraps(f)
     def decorated(*args, **kwargs):
         token = _extract_token()

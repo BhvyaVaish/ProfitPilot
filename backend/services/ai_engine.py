@@ -272,22 +272,60 @@ def get_home_festival_insights(user_id='demo'):
 def get_home_mini_insights(user_id='demo'):
     conn = get_connection()
     products = get_all_products(user_id)
-    top_row = conn.execute("SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty FROM products p LEFT JOIN sales s ON p.id = s.product_id WHERE p.user_id = ? GROUP BY p.id ORDER BY total_qty DESC LIMIT 1", (user_id,)).fetchone()
-    top_selling = top_row['name'] if top_row and top_row['total_qty'] > 0 else "No sales yet"
-    least_row = conn.execute("SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty FROM products p LEFT JOIN sales s ON p.id = s.product_id WHERE p.user_id = ? AND p.stock > 5 GROUP BY p.id ORDER BY total_qty ASC LIMIT 1", (user_id,)).fetchone()
+    
+    # 1. Top Selling (Last 30 Days)
+    top_row = conn.execute("""
+        SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty 
+        FROM products p 
+        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-30 days')
+        WHERE p.user_id = ? 
+        GROUP BY p.id 
+        HAVING total_qty > 0
+        ORDER BY total_qty DESC 
+        LIMIT 1
+    """, (user_id,)).fetchone()
+    top_selling = top_row['name'] if top_row else "No recent sales"
+
+    # 2. Least Selling (Last 30 Days, prioritization on high dead stock)
+    least_row = conn.execute("""
+        SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty, p.stock
+        FROM products p 
+        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-30 days')
+        WHERE p.user_id = ? AND p.stock > 0
+        GROUP BY p.id 
+        ORDER BY total_qty ASC, p.stock DESC 
+        LIMIT 1
+    """, (user_id,)).fetchone()
     least_selling = least_row['name'] if least_row else "N/A"
     conn.close()
 
+    # 3. High Potential (Match current inventory with upcoming festivals)
     festivals = get_upcoming_festivals()
-    festival_keywords = [cat.lower() for f in festivals if f['days_away'] <= 7 for cat in f['relevant_categories']]
+    # Check next 15 days
+    upcoming_festivals = [f for f in festivals if f['days_away'] <= 15]
+    festival_keywords = [cat.lower() for f in upcoming_festivals for cat in f['relevant_categories']]
+    
     high_potential = "None identified"
+    best_candidate = None
+    max_stock = -1
+    
     for p in products:
-        recent_avg = get_moving_average_range(p['id'], 3, 0)
-        prev_avg = get_moving_average_range(p['id'], 6, 3)
-        cat = p['category'].lower()
-        if (prev_avg > 0 and recent_avg > prev_avg * 1.2) or (cat in festival_keywords):
-            high_potential = f"{p['name']} may see increased demand"
-            break
+        if p['stock'] > 0 and p['category'].lower() in festival_keywords:
+            if p['stock'] > max_stock:
+                best_candidate = p
+                max_stock = p['stock']
+                
+    if best_candidate:
+        high_potential = f"{best_candidate['name']} (Festival demand expected)"
+    else:
+        # Fallback to recent sales momentum if no festivals apply
+        for p in products:
+            if p['stock'] > 0:
+                recent_avg = get_moving_average_range(p['id'], 3, 0)
+                prev_avg = get_moving_average_range(p['id'], 6, 3)
+                if prev_avg > 0 and recent_avg > prev_avg * 1.5:
+                    high_potential = f"{p['name']} (Sales trending up)"
+                    break
 
     return { "top_selling": top_selling, "least_selling": least_selling, "high_potential": high_potential }
 

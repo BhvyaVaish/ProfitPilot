@@ -3,6 +3,7 @@ from database import get_connection
 from models import insert_product, delete_product
 from services.alert_service import refresh_alerts
 from auth_middleware import optional_auth, require_auth
+from config import COST_RATIO
 
 inventory_bp = Blueprint('inventory', __name__)
 
@@ -14,7 +15,7 @@ def get_inventory():
         conn = get_connection()
         query = """
             SELECT
-                p.id, p.name, p.category, p.price, p.stock,
+                p.id, p.name, p.category, p.price, p.cost_price, p.stock,
                 COALESCE(SUM(s.quantity), 0) as past_7d_sales
             FROM products p
             LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-7 days')
@@ -36,6 +37,14 @@ def get_inventory():
                 prod['status'] = 'Low'
             else:
                 prod['status'] = 'OK'
+
+            # Compute effective cost price
+            if prod['cost_price'] is not None and prod['cost_price'] > 0:
+                prod['effective_cost'] = prod['cost_price']
+                prod['cost_mode'] = 'custom'
+            else:
+                prod['effective_cost'] = round(prod['price'] * COST_RATIO, 2)
+                prod['cost_mode'] = 'default'
 
             products.append(prod)
 
@@ -64,7 +73,16 @@ def add_product():
             return jsonify({"error": "Product with this name already exists"}), 400
         conn.close()
 
-        product_id = insert_product(data['name'], data['category'], float(data['price']), int(data['stock']), user_id)
+        cost_price = data.get('cost_price')
+        if cost_price is not None:
+            try:
+                cost_price = float(cost_price)
+                if cost_price <= 0:
+                    cost_price = None
+            except (ValueError, TypeError):
+                cost_price = None
+
+        product_id = insert_product(data['name'], data['category'], float(data['price']), int(data['stock']), user_id, cost_price=cost_price)
         refresh_alerts(user_id)
         return jsonify({"success": True, "product_id": product_id}), 201
     except Exception as e:
@@ -127,6 +145,20 @@ def update_product_route(product_id):
         if 'category' in data and len(data['category'].strip()) > 0:
             updates.append("category = ?")
             params.append(data['category'].strip())
+
+        if 'cost_price' in data:
+            cp = data['cost_price']
+            if cp is None or cp == '' or cp == 'default':
+                updates.append("cost_price = ?")
+                params.append(None)  # Reset to default
+            else:
+                try:
+                    cp_val = float(cp)
+                    if cp_val > 0:
+                        updates.append("cost_price = ?")
+                        params.append(cp_val)
+                except (ValueError, TypeError):
+                    pass
 
         if not updates:
             conn.close()

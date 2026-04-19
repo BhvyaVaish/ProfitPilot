@@ -2,10 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Learn about ProfitPilot, the AI-powered retail management platform designed to help MSMEs grow and automate their daily business tasks.">
   <title>About ProfitPilot</title>
   <link rel="icon" type="image/png" href="favicon.png">
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/favicon.png">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/components.css">
@@ -22,82 +28,211 @@
       <a href="chatbot.html" class="nav-item">Assistant</a>
       <a href="about.html" class="nav-item active">About</a>
     </nav>
-    <div class="lang-toggle" onclick="toggleLanguage()">
-      <span class="lang-en active">EN</span><span class="lang-hi">HI</span>
+    <div class="header-right">
+      <div class="lang-toggle" onclick="toggleLanguage()">
+        <span class="lang-en active">EN</span><span class="lang-hi">HI</span>
+      </div>
+      <div class="user-profile">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="text-muted" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </div>
+      <button class="hamburger-btn" onclick="toggleMobileNav()" aria-label="Menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
     </div>
-    <div class="user-profile auth-required" style="display:none;"></div>
-    <div class="user-profile guest-only"></div>
   </header>
 
-  <main class="main-content">
-    <div style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
-      
-      <div style="text-align: center; margin-bottom: 50px;">
-        <h1 style="font-size: 3rem; margin-bottom: 10px; background: linear-gradient(90deg, var(--accent-blue), var(--accent-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">About ProfitPilot</h1>
-        <p style="font-size: 1.2rem; color: var(--text-muted);">Your business on autopilot. Effortless growth for MSMEs.</p>
+  <!-- Mobile Nav Drawer -->
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay" onclick="closeMobileNav()">
+    <nav class="mobile-nav" onclick="event.stopPropagation()">
+      <div class="mobile-nav-header">
+        <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent-orange);"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> ProfitPilot</div>
+        <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
       </div>
+      <a href="index.html" class="mobile-nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Home
+      </a>
+      <a href="dashboard.html" class="mobile-nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Dashboard
+      </a>
+      <a href="billing.html" class="mobile-nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        Billing
+      </a>
+      <a href="inventory.html" class="mobile-nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+        Inventory
+      </a>
+      <a href="tax.html" class="mobile-nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        Tax
+      </a>
+      <a href="chatbot.html" class="mobile-nav-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Assistant
+      </a>
+      <a href="about.html" class="mobile-nav-item active">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        About
+      </a>
+      <div class="divider"></div>
+      <div style="padding: 8px 16px;">
+        <div class="lang-toggle" onclick="toggleLanguage()" style="margin: 0;">
+          <span class="lang-en active">EN</span><span class="lang-hi">HI</span>
+        </div>
+      </div>
+    </nav>
+  </div>
 
-      <div class="card mb-3" style="padding: 30px;">
-        <h2 class="text-blue" style="margin-bottom: 15px; font-size: 1.6rem;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:text-bottom;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg> What is ProfitPilot?</h2>
-        <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-secondary);">
-          ProfitPilot is an AI-powered retail management platform designed specifically for MSMEs. We turn your daily operational headaches into massive growth opportunities. Say goodbye to messy notebooks and confusing spreadsheets!
+  <main class="main-content">
+    <div style="max-width: 900px; margin: 0 auto; padding: 40px 20px;">
+      
+      <!-- Header Section -->
+      <div style="text-align: center; margin-bottom: 50px;">
+        <h1 style="font-size: 3rem; font-family: var(--font-display); font-weight: 800; margin-bottom: 12px; color: var(--accent-blue);">About ProfitPilot</h1>
+        <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto; line-height: 1.6;">
+          ProfitPilot is your intelligent retail management partner, designed to automate daily operations, optimize inventory, and supercharge your business growth.
         </p>
       </div>
 
+      <!-- Feature Highlight / What is ProfitPilot -->
+      <div class="card mb-3" style="padding: 40px; text-align: center; background: linear-gradient(to bottom right, rgba(37,99,235,0.03), rgba(16,185,129,0.03)); border: 1px solid rgba(37,99,235,0.1);">
+        <h2 style="margin-bottom: 15px; font-size: 1.6rem; color: var(--text-primary); display: flex; align-items: center; justify-content: center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" style="margin-right:10px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Beyond a Simple Billing Tool</h2>
+        <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-secondary); max-width: 700px; margin: 0 auto;">
+          We understand the unique challenges faced by small business owners. From messy spreadsheets to unpredictable cash flows, keeping track of everything can be overwhelming. ProfitPilot turns operational headaches into streamlined, data-driven decisions.
+        </p>
+      </div>
+
+      <!-- How it Works & Getting Started -->
       <div class="grid-2 mb-3">
-        <div class="card" style="padding: 30px;">
-          <h2 style="color: var(--accent-orange); margin-bottom: 15px; font-size: 1.4rem;">How does it work?</h2>
+        <div class="card" style="padding: 30px; display: flex; flex-direction: column; justify-content: center;">
+          <h2 style="color: var(--accent-orange); margin-bottom: 15px; font-size: 1.4rem; display: flex; align-items: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> The Core Engine</h2>
           <p style="font-size: 1.05rem; line-height: 1.6; color: var(--text-secondary);">
-            Simply sign up, add your stock and start billing! Our smart algorithms automatically track successful sales behind the scenes, manage your delicate inventory and predict what items you need to restock before you even run out.
+            Our advanced algorithms work silently behind the scenes. Every time you generate a bill, ProfitPilot updates your inventory, recalculates your estimated profit margins, and updates your dashboard with live business health scores. We analyze your sales velocity to predict exact restock dates before you run out of fast-moving items.
           </p>
         </div>
-        <div class="card" style="padding: 30px; background: linear-gradient(145deg, rgba(37,99,235,0.05), rgba(0,0,0,0)); border-color: rgba(37,99,235,0.2);">
-          <h2 class="text-blue" style="margin-bottom: 15px; font-size: 1.4rem;">Getting Started is Easy!</h2>
-          <ul style="list-style:none; padding:0; font-size: 1.1rem; line-height: 1.8; color: var(--text-primary); font-weight: 500;">
-            <li>📦 <span>1. Add Products to your digital store</span></li>
-            <li>🧾 <span>2. Generate Bills in a few clicks</span></li>
-            <li>📊 <span>3. Track your daily progress instantly</span></li>
-            <li>🧠 <span>4. Get smart business advice via Assistant</span></li>
-            <li>📈 <span>5. Watch Profits Grow magically</span></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="card mb-4" style="padding: 30px;">
-        <h2 style="color: var(--accent-green); margin-bottom: 20px; font-size: 1.6rem;">Why choose us?</h2>
-        <div class="grid-2 gap-2">
-          <div>
-            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">⚡ Zero Paperwork</h4>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Everything is digital, blazingly fast and completely secure in the cloud.</p>
-          </div>
-          <div>
-            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">🚀 Supercharge Your Sales</h4>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Know exactly what products are selling hot and what is lying dead in the godown.</p>
-          </div>
-          <div>
-            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">💰 Easy Tax & GST</h4>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">No more calculator stress! Get auto-calculated GST and friendly Income Tax estimates.</p>
-          </div>
-          <div>
-            <h4 style="margin-bottom: 5px; font-size: 1.1rem;">🤖 Intelligent Assistant</h4>
-            <p style="color: var(--text-muted); font-size: 0.95rem;">Just ask our AI Assistant any business question and get smart, data-driven answers instantly.</p>
+        
+        <div class="card" style="padding: 30px; border-color: rgba(37,99,235,0.2);">
+          <h2 style="margin-bottom: 20px; font-size: 1.4rem; color: var(--accent-blue); display: flex; align-items: center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px;"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg> Start in Minutes</h2>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+              </div>
+              <span style="font-weight: 500; font-size: 1.05rem; color: var(--text-primary);">Add your digital inventory</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </div>
+              <span style="font-weight: 500; font-size: 1.05rem; color: var(--text-primary);">Generate professional bills</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              </div>
+              <span style="font-weight: 500; font-size: 1.05rem; color: var(--text-primary);">Track real-time analytics</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(37,99,235,0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </div>
+              <span style="font-weight: 500; font-size: 1.05rem; color: var(--text-primary);">Consult your AI Assistant</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 50px;">
-        <h2 style="margin-bottom: 20px; font-size: 2rem;">Ready to upgrade your business?</h2>
-        <a href="auth.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 30px; border-radius: 30px; box-shadow: 0 4px 15px rgba(37,99,235,0.4);">Start Growing Today!</a>
+      <!-- Why Choose Us Grid -->
+      <h2 style="margin: 40px 0 20px; font-size: 1.6rem; text-align: center;">Why Choose ProfitPilot?</h2>
+      <div class="grid-2 gap-2 mb-4">
+        <div class="card" style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:40px; height:40px; background:rgba(37,99,235,0.08); color:var(--accent-blue); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 6px; font-size: 1.1rem;">Frictionless Management</h4>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height:1.5;">Move entirely to the cloud. Ditch physical registers and access your shop's heartbeat from anywhere on any device securely.</p>
+          </div>
+        </div>
+        
+        <div class="card" style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:40px; height:40px; background:rgba(249,115,22,0.08); color:var(--accent-orange); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12l5.25 5 2.625-3 3.937 4.5L22 6"></path></svg>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 6px; font-size: 1.1rem;">Supercharge Your Sales</h4>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height:1.5;">Identify trending products quickly. Our algorithms tell you exactly what brings the most margin and what ties up capital.</p>
+          </div>
+        </div>
+        
+        <div class="card" style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:40px; height:40px; background:rgba(16,185,129,0.08); color:var(--accent-green); border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 6px; font-size: 1.1rem;">Demystified Tax & GST</h4>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height:1.5;">Stop stressing over complex tax structures. We automatically calculate GST, estimate profit, and explain MSME tax jargon simply.</p>
+          </div>
+        </div>
+        
+        <div class="card" style="display:flex; align-items:flex-start; gap:16px;">
+          <div style="width:40px; height:40px; background:rgba(139,92,246,0.08); color:#8b5cf6; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          </div>
+          <div>
+            <h4 style="margin-bottom: 6px; font-size: 1.1rem;">AI-Driven Assistant</h4>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height:1.5;">Your personalized business consultant. Ask inventory questions, get actionable insights, and navigate finances with an intelligent companion.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      <h2 style="margin: 60px 0 30px; font-size: 1.6rem; text-align: center;">Frequently Asked Questions</h2>
+      <div style="max-width: 700px; margin: 0 auto 60px;">
+        <details class="faq-item">
+          <summary>What kind of businesses is ProfitPilot built for?</summary>
+          <div class="faq-content">ProfitPilot is designed specifically for Indian Micro, Small, and Medium Enterprises (MSMEs). Whether you run a retail shop, a hardware store, an electronics outlet, or a grocery market, our platform adapts to your inventory style and billing needs without requiring an accounting background.</div>
+        </details>
+        <details class="faq-item">
+          <summary>How will ProfitPilot help me manage my taxes?</summary>
+          <div class="faq-content">We take the headache out of GST and Income Tax. As you generate bills, ProfitPilot automatically calculates category-wise GST. It also features a Tax Estimator that compares the New vs. Old Income Tax Regimes and checks if your turnover qualifies for Section 44AD or the GST Composition Scheme, helping you save money legally.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Do I need to manually enter my entire inventory one by one?</summary>
+          <div class="faq-content">Not at all! If you already have a list of your products in Excel or another software, you can upload a simple CSV file to import your entire inventory in one click. You can also easily add new items manually whenever needed.</div>
+        </details>
+        <details class="faq-item">
+          <summary>Is my business data secure?</summary>
+          <div class="faq-content">Absolutely. We use enterprise-grade cloud security and multi-tenant database architecture. This ensures your business data, inventory, and sales are strictly isolated and accessible only by you when you log in securely.</div>
+        </details>
+        <details class="faq-item">
+          <summary>How is the AI Assistant different from a regular search bar?</summary>
+          <div class="faq-content">Unlike generic chatbots, our AI Assistant is directly connected to your live business data. You can ask it questions in English or Hindi (like <i>"What products should I restock before Diwali?"</i> or <i>"Mera sabse slow moving item kaunsa hai?"</i>) and it will give you specific, data-driven answers based on your actual sales velocity and local festival demand.</div>
+        </details>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align: center; margin-top: 60px; padding: 40px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.02);">
+        <h2 style="margin-bottom: 12px; font-size: 2.2rem; font-family: var(--font-display);">Ready to transform your business?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 1.1rem;">Join modern MSMEs who are taking control of their growth.</p>
+        <a href="auth.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 36px; border-radius: 30px; box-shadow: 0 4px 15px rgba(37,99,235,0.4);">Launch ProfitPilot</a>
       </div>
 
     </div>
   </main>
 
-  <footer class="app-footer">
-    ProfitPilot v2.0 &mdash; AI-Driven Retail Management for MSMEs<br>
-    <div style="margin-top: 6px; font-size: 0.82rem; color: var(--text-muted);">
-      &copy; 2026. Made by <a href="https://github.com/bhvyavaish/" target="_blank" style="color:var(--text-primary); font-weight: 500; text-decoration:underline;">Bhvya Vaish</a>
+      <footer class="app-footer">
+    <div style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 20px;">
+      ProfitPilot v2.0 &mdash; AI-Driven Retail Management for MSMEs
     </div>
+    <a href="https://github.com/bhvyavaish/" target="_blank" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; background: #0f172a; padding: 12px 30px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 25px rgba(0,0,0,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: var(--font-display);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 30px rgba(37,99,235,0.25)'; this.style.background='#1e293b';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)'; this.style.background='#0f172a';">
+      <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">Crafted By</span> 
+      <span style="color: #ffffff; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.5px;">Bhvya Vaish</span>
+    </a>
   </footer>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -106,5 +241,26 @@
   <script src="js/api.js"></script>
   <script src="js/auth-guard.js"></script>
   <script src="js/i18n.js"></script>
+
+  <!-- Mobile Nav + Service Worker -->
+  <script>
+    function toggleMobileNav() {
+      document.getElementById('mobile-nav-overlay').classList.toggle('active');
+      document.querySelector('.hamburger-btn').classList.toggle('active');
+      document.body.style.overflow = document.getElementById('mobile-nav-overlay').classList.contains('active') ? 'hidden' : '';
+    }
+    function closeMobileNav() {
+      document.getElementById('mobile-nav-overlay').classList.remove('active');
+      document.querySelector('.hamburger-btn').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').then(reg => {
+          console.log('[PWA] Service Worker registered:', reg.scope);
+        }).catch(err => console.log('[PWA] SW registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>

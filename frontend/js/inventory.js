@@ -98,7 +98,7 @@ function renderInventory(data) {
                 <td style="text-align:center;"><span class="status-pill ${pillClass}">${pillLabel}</span></td>
                 <td style="text-align:center; display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
                     <button class="btn btn-primary tbl-action-btn" onclick="openRestockModal(${p.id})">Restock</button>
-                    <button class="btn tbl-action-btn" onclick="openEditModal(${p.id}, '${escJs(p.name)}', ${p.price}, ${p.stock})">Edit</button>
+                    <button class="btn tbl-action-btn" onclick="openEditModal(${p.id}, '${escJs(p.name)}', ${p.price}, ${p.stock}, '${escJs(p.category)}', ${p.cost_price || 'null'})">Edit</button>
                     <button class="btn btn-danger tbl-action-btn" onclick="deleteProduct(${p.id}, '${escJs(p.name)}')">Delete</button>
                 </td>
             </tr>
@@ -217,12 +217,19 @@ async function handleAddStock() {
 }
 
 // -- EDIT PRODUCT MODAL -------------------------------------------------
-function openEditModal(id, name, price, stock) {
+function openEditModal(id, name, price, stock, category, costPrice) {
     document.getElementById('edit-id').value = id;
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-price').value = price;
     if (stock !== undefined) {
         document.getElementById('edit-stock').value = stock;
+    }
+    if (category) {
+        document.getElementById('edit-category').value = category;
+    }
+    const cpInput = document.getElementById('edit-cost-price');
+    if (cpInput) {
+        cpInput.value = (costPrice && costPrice !== 'null' && costPrice !== null) ? costPrice : '';
     }
     document.getElementById('edit-error').style.display = 'none';
     document.getElementById('edit-modal-overlay').classList.add('active');
@@ -244,8 +251,15 @@ async function handleEditProduct() {
     if (price <= 0 || isNaN(price)) { showErr(errBox, 'Price must be > 0.'); return; }
     if (stock < 0 || isNaN(stock)) { showErr(errBox, 'Stock cannot be negative.'); return; }
 
+    const category = document.getElementById('edit-category').value;
+    const costPriceRaw = document.getElementById('edit-cost-price').value.trim();
+    let costPrice = costPriceRaw === '' ? 'default' : parseFloat(costPriceRaw);
+    if (typeof costPrice === 'number' && (isNaN(costPrice) || costPrice <= 0)) {
+        costPrice = 'default';
+    }
+
     try {
-        const res = await apiCall(`/api/inventory/${id}`, 'PUT', { name, price, stock });
+        const res = await apiCall(`/api/inventory/${id}`, 'PUT', { name, price, stock, category, cost_price: costPrice });
         if (res.error) { showErr(errBox, res.error); return; }
         showToast('Product updated.', 'success');
         closeEditModal();

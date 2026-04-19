@@ -22,10 +22,13 @@ def get_product_by_name(name, user_id='demo'):
     conn.close()
     return dict(row) if row else None
 
-def insert_product(name, category, price, stock, user_id='demo'):
+def insert_product(name, category, price, stock, user_id='demo', cost_price=None):
     conn = get_connection()
     c = conn.cursor()
-    c.execute("INSERT INTO products (user_id, name, category, price, stock) VALUES (?, ?, ?, ?, ?)", (user_id, name, category, price, stock))
+    if cost_price is not None:
+        c.execute("INSERT INTO products (user_id, name, category, price, stock, cost_price) VALUES (?, ?, ?, ?, ?, ?)", (user_id, name, category, price, stock, cost_price))
+    else:
+        c.execute("INSERT INTO products (user_id, name, category, price, stock) VALUES (?, ?, ?, ?, ?)", (user_id, name, category, price, stock))
     conn.commit()
     product_id = c.lastrowid
     conn.close()

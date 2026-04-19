@@ -50,10 +50,13 @@ async function loadHomeSummary() {
             hs.factors.forEach(f => {
                 const pct = Math.round((f.score / f.max) * 100);
                 const barColor = pct >= 70 ? 'var(--accent-green)' : pct >= 40 ? 'var(--accent-yellow)' : 'var(--accent-red)';
+                const factorKey = f.name.toLowerCase().replace(' ', '-');
                 factorsEl.innerHTML += `
                     <div style="margin-bottom:8px;">
                         <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:3px;">
-                            <span style="color:var(--text-secondary); font-weight:500;">${f.name}</span>
+                            <span style="color:var(--text-secondary); font-weight:500;">
+                                ${f.name} <span data-explain="${factorKey}" class="explain-icon">i</span>
+                            </span>
                             <span style="font-weight:600;">${f.score}/${f.max}</span>
                         </div>
                         <div style="height:6px; background:rgba(0,0,0,0.06); border-radius:99px; overflow:hidden;">

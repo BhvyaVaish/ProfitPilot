@@ -4,8 +4,6 @@
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # ── Python bytecode & caches ───────────────────────────────────────────────
 __pycache__/
@@ -27,8 +25,6 @@ frontend/js/firebase-config.js
 
 # ── Database files ─────────────────────────────────────────────────────────
 # Local SQLite DB — not used in production (Supabase replaces it)
-backend/profitpilot.db
-backend/stockpilot.db
 *.db
 *.sqlite
 
@@ -46,16 +42,11 @@ backend/firebase-service-account.json
 .DS_Store
 Thumbs.db
 
-# ── Temporary / Debug files ────────────────────────────────────────────────
+# ── Temporary / Debug artifacts ────────────────────────────────────────────
+archive/
 emoji_out.txt
 svgs.txt
-final.json
-response.json
-response2.json
-implementation_plan.md
-FLUSH_DATA_DEBUG_GUIDE.md
-FLUSH_DATA_FIX.md
+*.log
 
 # ── Vercel build output ────────────────────────────────────────────────────
 .vercel/
-.vercel/output/

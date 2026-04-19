@@ -24,9 +24,44 @@ def _ensure_configured():
 
 
 # ── Hardcoded fallback (fast path — no API call needed) ──────────────────────
+# ── Hardcoded fallback (fast path — no API call needed) ──────────────────────
 def _get_from_hardcoded_map(festival_name: str) -> dict | None:
     """Check if this festival has a hardcoded mapping in config.py."""
     name_lower = festival_name.lower()
+    
+    # Precise matches for common Indian festivals to save API quota
+    detailed_map = {
+        "diwali": {
+            "categories": ["sweets", "lights", "gifts", "electronics", "decorations", "clothing", "grocery", "packaged_food"],
+            "items": ["Kaju Katli Box", "LED String Lights", "Dry Fruit Gift Pack", "Earthen Diyas", "Rangoli Colours", "New Festive Clothes", "Cooking Oil", "Ghee", "Firecrackers", "Torans", "Home Decor", "Silver Coins", "Smartphones", "Kitchen Appliances", "Gold Jewelry"]
+        },
+        "holi": {
+            "categories": ["colours", "sweets", "clothing", "personal_care", "drinks", "grocery"],
+            "items": ["Herbal Gulal", "Water Guns (Pichkari)", "Gujiya Sweets", "White Kurta/T-Shirt", "Skin Protection Oil", "Thandai Mix", "Balloons", "Namkeen Snacks", "Coconut Oil", "Hair Care Kits", "Sunglasses", "Waterproof Phone Pouches", "Buckets", "Cold Drinks", "Snack Hampers"]
+        },
+        "raksha bandhan": {
+            "categories": ["sweets", "gifts", "clothing", "personal_care"],
+            "items": ["Designer Rakhi", "Rakhi Set", "Soan Papdi", "Chocolate Gift Box", "Perfume Set", "Wrist Watches", "Ladies Suits", "Greeting Cards", "Roli Chawal Pack", "Brother-Sister Gifts", "Handbags", "Dry Fruit Boxes", "Silver Rakhis", "Wallets", "Cosmetic Kits"]
+        },
+        "eid": {
+            "categories": ["clothing", "sweets", "gifts", "personal_care", "grocery", "meat_products"],
+            "items": ["Seviyan (Vermicelli)", "Dates (Khajur)", "New Eid Clothes", "Attar (Perfume)", "Biryani Masala", "Dry Fruits", "Sheer Khurma Ingredients", "Gifts for Kids", "Bangles", "Henna (Mehendi) cones", "Sherwanis", "Suits", "Ghee", "Milk Packs", "Jewelry"]
+        },
+        "christmas": {
+            "categories": ["gifts", "electronics", "clothing", "sweets", "decorations", "packaged_food"],
+            "items": ["Plum Cake", "Christmas Tree", "Decorations & Ornaments", "Santa Hats", "Gift Wrapping Paper", "Chocolates", "Winter Jackets", "LED Stars", "Greeting Cards", "Electronic Gadgets", "Party Snacks", "Wine (Non-alcoholic)", "Cookies", "Candles", "New Year Planners"]
+        }
+    }
+
+    for key, data in detailed_map.items():
+        if key in name_lower:
+            return {
+                "categories": data["categories"],
+                "items": data["items"],
+                "source": "hardcoded"
+            }
+            
+    # Fallback to simple map from config
     for key, categories in FESTIVAL_CATEGORY_MAP.items():
         if key in name_lower:
             return {
@@ -42,13 +77,6 @@ def predict_festival_demand(festival_name: str) -> dict:
     """
     Use Gemini AI to predict the top 15 high-demand product categories
     and specific items for a given festival in India.
-
-    Returns:
-        {
-            "categories": ["sweets", "gifts", ...],
-            "items": ["Kaju Katli", "Dry Fruits Box", ...],
-            "source": "ai" | "hardcoded" | "fallback"
-        }
     """
     # 1. Try hardcoded map first (instant, free)
     hardcoded = _get_from_hardcoded_map(festival_name)
@@ -74,10 +102,21 @@ Respond ONLY with valid JSON in this exact format, no other text:
 
 Return exactly 15 items and their relevant categories (can be fewer unique categories)."""
 
-            response = _CLIENT.models.generate_content(
-                model='gemini-2.0-flash',
-                contents=prompt,
-            )
+            # Try standard model names
+            model_name = 'gemini-1.5-flash'
+            try:
+                response = _CLIENT.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+            except Exception:
+                # Fallback to latest alias if standard name fails (some keys/regions prefer this)
+                model_name = 'gemini-flash-latest'
+                response = _CLIENT.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+            
             text = response.text.strip()
 
             # Extract JSON from response (handle markdown code blocks)
