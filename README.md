@@ -4,8 +4,10 @@
 
 **Intelligent Inventory & Business Management for MSMEs.** <br>
 > *Smart inventory, Real-time AI insights, seamless billing, GST tools and much more.* <br>
+</div>
 > *Built for Indian small businesses.* <br>
 
+<div align="center">
 [![Python](https://img.shields.io/badge/Python-3.x-blue?style=flat-square&logo=python)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey?style=flat-square&logo=flask)](https://flask.palletsprojects.com)
 [![Firebase](https://img.shields.io/badge/Auth-Firebase-yellow?style=flat-square&logo=firebase)](https://firebase.google.com)
