@@ -34,7 +34,7 @@ from routes.tax import tax_bp
 from routes.auth import auth_bp
 from routes.client_config import config_bp
 
-app = Flask(__name__, static_folder='../frontend', static_url_path='')
+app = Flask(__name__, static_folder='../public', static_url_path='')
 CORS(app)
 
 app.register_blueprint(auth_bp)

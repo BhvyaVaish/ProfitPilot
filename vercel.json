@@ -4,14 +4,14 @@
     {
       "src": "api/index.py",
       "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb",
-        "includeFiles": "frontend/**,backend/**"
-      }
+      "config": { "maxLambdaSize": "50mb" }
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "api/index.py" }
+    { "src": "/api/(.*)", "dest": "api/index.py" },
+    { "handle": "filesystem" },
+    { "src": "/(dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)$", "dest": "/api/index.py" },
+    { "src": "^/$", "dest": "/api/index.py" }
   ]
 }
 
