@@ -3,47 +3,38 @@ from models import get_all_products
 from config import RESTOCK_BUFFER
 from services.festival_service import get_upcoming_festivals
 
-def get_moving_average(product_id, days=7):
+def get_bulk_sales_metrics(user_id='demo'):
     conn = get_connection()
-    result = conn.execute("""
-        SELECT COALESCE(SUM(quantity), 0) / CAST(? AS REAL) as avg_daily
-        FROM sales
-        WHERE product_id = ?
-        AND sold_at >= date('now', ? || ' days')
-    """, (days, product_id, f'-{days}')).fetchone()
+    rows = conn.execute("""
+        SELECT p.id as product_id,
+               COALESCE(SUM(CASE WHEN s.sold_at >= date('now', '-7 days') THEN s.quantity ELSE 0 END), 0) as last_7_days_sales,
+               COALESCE(SUM(CASE WHEN s.sold_at >= date('now', '-3 days') THEN s.quantity ELSE 0 END), 0) as last_3_days_sales,
+               COALESCE(SUM(CASE WHEN s.sold_at >= date('now', '-6 days') AND s.sold_at < date('now', '-3 days') THEN s.quantity ELSE 0 END), 0) as prev_3_days_sales
+        FROM products p
+        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-7 days')
+        WHERE p.user_id = ?
+        GROUP BY p.id
+    """, (user_id,)).fetchall()
     conn.close()
-    return result['avg_daily'] if result and result['avg_daily'] is not None else 0.0
+    
+    metrics = {}
+    for r in rows:
+        pid = r['product_id']
+        metrics[pid] = {
+            'last_7_days_sales': r['last_7_days_sales'],
+            'avg_last_7': r['last_7_days_sales'] / 7.0,
+            'avg_last_3': r['last_3_days_sales'] / 3.0,
+            'avg_prev_3': r['prev_3_days_sales'] / 3.0
+        }
+    return metrics
 
-def get_moving_average_range(product_id, start_days_ago, end_days_ago):
-    conn = get_connection()
-    days = start_days_ago - end_days_ago
-    if days <= 0:
-        conn.close()
-        return 0.0
-    result = conn.execute("""
-        SELECT COALESCE(SUM(quantity), 0) / CAST(? AS REAL) as avg_daily
-        FROM sales
-        WHERE product_id = ?
-        AND sold_at >= date('now', ? || ' days')
-        AND sold_at < date('now', ? || ' days')
-    """, (days, product_id, f'-{start_days_ago}', f'-{end_days_ago}')).fetchone()
-    conn.close()
-    return result['avg_daily'] if result and result['avg_daily'] is not None else 0.0
-
-def get_total_sales_range(product_id, days):
-    conn = get_connection()
-    result = conn.execute(
-        "SELECT COALESCE(SUM(quantity), 0) as total FROM sales WHERE product_id = ? AND sold_at >= date('now', ? || ' days')",
-        (product_id, f'-{days}')
-    ).fetchone()
-    conn.close()
-    return result['total'] if result and result['total'] else 0
 
 def get_restock_suggestions(user_id='demo'):
     products = get_all_products(user_id)
     festivals = get_upcoming_festivals()
     festival_keywords = [cat.lower() for f in festivals if f['days_away'] <= 7 for cat in f['relevant_categories']]
     suggestions = []
+    metrics = get_bulk_sales_metrics(user_id)
 
     for p in products:
         pid = p['id']
@@ -51,10 +42,10 @@ def get_restock_suggestions(user_id='demo'):
         stock = p['stock']
         category = p['category'].lower()
 
-        avg_last_7 = get_total_sales_range(pid, 7) / 7.0
-
-        avg_last_3 = get_moving_average_range(pid, 3, 0)
-        avg_prev_3 = get_moving_average_range(pid, 6, 3)
+        p_metrics = metrics.get(pid, {'last_7_days_sales': 0, 'avg_last_7': 0, 'avg_last_3': 0, 'avg_prev_3': 0})
+        avg_last_7 = p_metrics['avg_last_7']
+        avg_last_3 = p_metrics['avg_last_3']
+        avg_prev_3 = p_metrics['avg_prev_3']
 
         predicted_demand = avg_last_7 * 7
         is_festival = category in festival_keywords or any(k in name.lower() for k in festival_keywords)
@@ -124,11 +115,14 @@ def get_high_potential_items(user_id='demo'):
     products = get_all_products(user_id)
     festivals = get_upcoming_festivals()
     festival_categories = [cat for f in festivals for cat in f['relevant_categories']]
+    metrics = get_bulk_sales_metrics(user_id)
 
     high_potential = []
     for p in products:
-        recent_avg = get_moving_average_range(p['id'], 3, 0)
-        prev_avg = get_moving_average_range(p['id'], 6, 3)
+        pid = p['id']
+        p_metrics = metrics.get(pid, {'avg_last_3': 0, 'avg_prev_3': 0})
+        recent_avg = p_metrics['avg_last_3']
+        prev_avg = p_metrics['avg_prev_3']
 
         reason = None
         if prev_avg > 0 and recent_avg >= prev_avg * 1.2:
@@ -148,6 +142,7 @@ def get_prioritized_alerts(user_id='demo'):
     festival_keywords = [cat.lower() for f in festivals if f['days_away'] <= 7 for cat in f['relevant_categories']]
 
     alerts = []
+    metrics = get_bulk_sales_metrics(user_id)
 
     for p in products:
         pid = p['id']
@@ -155,11 +150,11 @@ def get_prioritized_alerts(user_id='demo'):
         stock = p['stock']
         category = p['category'].lower()
 
-        last_7_days_sales = get_total_sales_range(pid, 7)
-        avg_daily_sales = last_7_days_sales / 7.0
-
-        avg_last_3_days = get_moving_average_range(pid, 3, 0)
-        avg_prev_3_days = get_moving_average_range(pid, 6, 3)
+        p_metrics = metrics.get(pid, {'last_7_days_sales': 0, 'avg_last_7': 0, 'avg_last_3': 0, 'avg_prev_3': 0})
+        last_7_days_sales = p_metrics['last_7_days_sales']
+        avg_daily_sales = p_metrics['avg_last_7']
+        avg_last_3_days = p_metrics['avg_last_3']
+        avg_prev_3_days = p_metrics['avg_prev_3']
 
         stock_urgency = 0
         demand_trend_score = 0

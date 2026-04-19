@@ -17,7 +17,47 @@ if (window._authReady) {
 async function loadFullDashboard() {
     try {
         const days = document.getElementById('time-range').value || 7;
+        
+        // Show loading state
+        const chartCards = document.querySelectorAll('canvas');
+        chartCards.forEach(canvas => {
+            const parent = canvas.parentElement;
+            let loader = parent.querySelector('.dashboard-loader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.className = 'dashboard-loader text-center';
+                loader.innerHTML = '<div style="margin:40px auto; width:30px; height:30px; border:3px solid rgba(37,99,235,0.2); border-top-color:var(--accent-blue); border-radius:50%; animation:spin 1s linear infinite;"></div>';
+                
+                if (!document.getElementById('spinner-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'spinner-style';
+                    style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+                    document.head.appendChild(style);
+                }
+                
+                parent.appendChild(loader);
+            }
+            loader.style.display = 'block';
+            canvas.style.display = 'none';
+        });
+
+        const restockBody = document.getElementById('restock-body');
+        if(restockBody) restockBody.innerHTML = '<tr><td colspan="4" class="text-center"><div style="margin:20px auto; width:24px; height:24px; border:2px solid rgba(37,99,235,0.2); border-top-color:var(--accent-blue); border-radius:50%; animation:spin 1s linear infinite;"></div></td></tr>';
+        
+        const deadBody = document.getElementById('dead-stock-body');
+        if(deadBody) deadBody.innerHTML = '<tr><td colspan="3" class="text-center"><div style="margin:20px auto; width:24px; height:24px; border:2px solid rgba(37,99,235,0.2); border-top-color:var(--accent-blue); border-radius:50%; animation:spin 1s linear infinite;"></div></td></tr>';
+
+        const alertPanel = document.getElementById('alert-panel');
+        if(alertPanel) alertPanel.innerHTML = '<div style="margin:20px auto; width:24px; height:24px; border:2px solid rgba(37,99,235,0.2); border-top-color:var(--accent-blue); border-radius:50%; animation:spin 1s linear infinite;"></div>';
+
+        const hpotContainer = document.getElementById('high-potential-panel');
+        if(hpotContainer) hpotContainer.innerHTML = '<div style="margin:20px auto; width:24px; height:24px; border:2px solid rgba(37,99,235,0.2); border-top-color:var(--accent-blue); border-radius:50%; animation:spin 1s linear infinite;"></div>';
+
         const data = await apiCall(`/api/dashboard/full?days=${days}`);
+        
+        // Remove loaders
+        document.querySelectorAll('.dashboard-loader').forEach(l => l.style.display = 'none');
+        chartCards.forEach(canvas => canvas.style.display = 'block');
 
         // Chart.js global defaults for light theme
         Chart.defaults.color = "rgba(15, 23, 42, 0.5)";
