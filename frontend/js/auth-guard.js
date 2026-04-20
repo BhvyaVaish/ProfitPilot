@@ -78,7 +78,7 @@ function _attachAuthListener() {
 
       // Fetch profile for header
       try {
-        const profileRes = await fetch('/api/auth/profile', {
+        const profileRes = await fetch(`${API_BASE_URL}/api/auth/profile`, {
           headers: { 'Authorization': `Bearer ${_authToken}` }
         });
         if (profileRes.ok) {

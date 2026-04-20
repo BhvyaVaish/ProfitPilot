@@ -35,7 +35,15 @@ from routes.auth import auth_bp
 from routes.client_config import config_bp
 
 app = Flask(__name__, static_folder='../frontend', static_url_path='')
-CORS(app)
+
+allowed_origins = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    os.environ.get("FRONTEND_URL", "https://profitpilotio.vercel.app"),
+]
+CORS(app, origins=allowed_origins, supports_credentials=True)
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(config_bp)

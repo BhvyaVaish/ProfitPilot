@@ -12,7 +12,7 @@ auth.onAuthStateChanged(async (user) => {
 async function loadProfile() {
   try {
     const token = await getIdToken();
-    const res = await fetch('/api/auth/profile', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -88,7 +88,7 @@ async function saveProfile() {
     const turnoverMap = { 'below_1cr': 'micro', '1_5cr': 'small', '5_50cr': 'small', '50_250cr': 'medium' };
     payload.msme_category = turnoverMap[payload.turnover_range] || 'micro';
 
-    const res = await fetch('/api/auth/profile', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

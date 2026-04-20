@@ -13,7 +13,7 @@ async function apiCall(endpoint, method = 'GET', body = null) {
   if (body) options.body = JSON.stringify(body);
 
   try {
-    const response = await fetch(endpoint, options);
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'API Error');
     return data;

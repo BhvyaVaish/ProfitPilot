@@ -12,7 +12,7 @@ let googleProvider;
 // ── Fetch config from backend and initialize Firebase ──────────────────
 async function _initFirebase() {
   try {
-    const res = await fetch('/api/config');
+    const res = await fetch(`${API_BASE_URL}/api/config`);
     if (!res.ok) throw new Error('Failed to load Firebase config');
     const firebaseConfig = await res.json();
 
@@ -98,7 +98,7 @@ async function checkUserOnboarded() {
   if (!token) return { exists: false, onboarded: false };
 
   try {
-    const res = await fetch('/api/auth/check', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/check`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     return await res.json();

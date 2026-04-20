@@ -114,7 +114,7 @@
     msgArea.scrollTop = msgArea.scrollHeight;
 
     try {
-      const res = await (window.apiCall ? apiCall('/api/chat', 'POST', { message: q }) : fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: q }) }).then(r => r.json()));
+      const res = await (window.apiCall ? apiCall('/api/chat', 'POST', { message: q }) : fetch(`${API_BASE_URL}/api/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: q }) }).then(r => r.json()));
 
       const loadEl = document.getElementById(loadId);
       if (loadEl) loadEl.remove();

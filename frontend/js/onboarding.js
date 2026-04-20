@@ -148,7 +148,7 @@ async function completeOnboarding() {
       payment_mode: document.getElementById('ob-payment-mode').value,
     };
 
-    const res = await fetch('/api/auth/onboarding', {
+    const res = await fetch(`${API_BASE_URL}/api/auth/onboarding`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
