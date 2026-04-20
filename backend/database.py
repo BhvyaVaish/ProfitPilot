@@ -203,9 +203,16 @@ class _PgConnection:
     def __enter__(self):
         return self
 
-    def __exit__(self, *_):
-        self.commit()
-        self.close()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            if exc_type:
+                self._conn.rollback()
+            else:
+                self.commit()
+        except Exception:
+            pass
+        finally:
+            self.close()
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -228,8 +235,14 @@ class _DummyCloseConnection:
         pass # Ignored. Handled by app.teardown_appcontext
     def __enter__(self):
         return self
-    def __exit__(self, *_):
-        self.commit()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        try:
+            if exc_type:
+                self._conn._conn.rollback()
+            else:
+                self.commit()
+        except Exception:
+            pass
 
 def _create_new_connection():
     if USE_POSTGRES:
@@ -244,7 +257,18 @@ def _create_new_connection():
 def get_connection():
     """Return a DB connection. Caches per-request if inside Flask to prevent connection exhaustion."""
     if has_request_context():
-        if 'db_conn' not in g:
+        if 'db_conn' in g:
+            # Validate the cached connection is still alive (PostgreSQL only)
+            if USE_POSTGRES:
+                try:
+                    g.db_conn._conn.cursor().execute("SELECT 1")
+                except Exception:
+                    try:
+                        g.db_conn._conn.close()
+                    except Exception:
+                        pass
+                    g.db_conn = _create_new_connection()
+        else:
             g.db_conn = _create_new_connection()
         return _DummyCloseConnection(g.db_conn)
     return _create_new_connection()

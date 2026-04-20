@@ -131,7 +131,19 @@ def about_page():
 def close_db_connection(exception):
     db_conn = g.pop('db_conn', None)
     if db_conn is not None:
-        db_conn.close()
+        try:
+            if exception:
+                # Rollback aborted transactions so the connection closes cleanly
+                if hasattr(db_conn, '_conn'):
+                    db_conn._conn.rollback()
+                else:
+                    db_conn.rollback()
+            else:
+                db_conn.commit()
+        except Exception:
+            pass
+        finally:
+            db_conn.close()
 
 # ── One-time initialisation ─────────────────────────────────────────────────
 
