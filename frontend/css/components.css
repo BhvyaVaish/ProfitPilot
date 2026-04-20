@@ -362,6 +362,7 @@ tbody tr:nth-child(even) { background: rgba(0, 0, 0, 0.015); }
   .modal-overlay { position: absolute; left: 0; top: 0; background: none; backdrop-filter: none; }
   .modal { box-shadow: none; border: none; width: 100%; max-width: none; }
   .no-print { display: none !important; }
+  #bill-watermark { display: block !important; }
 }
 
 /* ── Inventory button tooltips ─────────────────────────────────────── */
@@ -373,7 +374,7 @@ tbody tr:nth-child(even) { background: rgba(0, 0, 0, 0.015); }
 .inv-btn-wrap::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
   background: rgba(15, 23, 42, 0.92);
@@ -390,7 +391,7 @@ tbody tr:nth-child(even) { background: rgba(0, 0, 0, 0.015); }
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  transform: translateX(-50%) translateY(4px);
+  transform: translateX(-50%) translateY(-4px);
   z-index: 200;
 }
 

@@ -8,39 +8,39 @@ from models import get_all_products, get_user_profile
 from database import get_connection
 
 # ── KEYWORD SETS ────────────────────────────────────────────────────────
-_GREET = {'hi','hello','hey','help','start','namaste','namaskar','hola','sup','yo','howdy','good morning','good evening','good afternoon','kaise ho','kya hal'}
-_RESTOCK = {'restock','order','low stock','running out','buy','purchase','replenish','kharidna','stock bhariye','shortage','supply','out of stock','oos','need more','refill','procurement','khatam','kam stock','stock kam','stock nahi'}
-_TOP_SELL = {'top','best','most selling','popular','trending','sells most','what sells','highest','bestseller','best seller','sabse zyada','top seller','hit product','fast moving','hot selling','star product','winner'}
-_DEAD = {'dead','slow','not selling','stagnant','stuck','no sales','waste','idle','bikta nahi','nahi bikta','slow moving','non moving','zero sales','poor performance','dust collecting','shelf warmer'}
-_DEMAND = {'demand','potential','will sell','grow','increase','predict','forecast','future','aage','coming demand','rising','growth','opportunity','scope','high potential','momentum','surge','spike','uptick'}
-_FESTIVAL = {'festival','holiday','event','occasion','upcoming','celebration','diwali','holi','eid','tyohar','christmas','raksha bandhan','navratri','ganesh','onam','pongal','makar','lohri','baisakhi','durga puja','chhath'}
-_SALES = {'sales','revenue','earnings','money','income','how much','bikri','kamai','turnover','total sales','aaj ki bikri','paisa','kitna kamaya','collection','gross','net','receipt'}
-_STOCK = {'stock','inventory','products','items','catalog','how many','kitna maal','warehouse','godown','store','saman','product list','stock level','stock check','maal','available'}
-_PROFIT = {'profit','margin','earning','how much am i making','kitna kama','munafa','fayda','net profit','gross profit','profit margin','kamai','return','roi','net income','bottom line'}
-_TAX = {'gst','tax','itr','income tax','section 44','filing','return file','tax return','kar','gst return','taxation','tds','advance tax','presumptive','44ad','44ada','composition','composition scheme','gstr','gst filing'}
-_TODAY = {'what should i do','today','right now','summary','daily','aaj','aaj ka','daily summary','morning brief','kya karu','action','to do','todo','kaam'}
+_GREET = {'hi','hello','hey','help','start','namaste','namaskar','hola','sup','yo','howdy','good morning','good evening','good afternoon','kaise ho','kya hal','kaise','madad','sahayata'}
+_RESTOCK = {'restock','order','low stock','running out','buy','purchase','replenish','kharidna','stock bhariye','shortage','supply','out of stock','oos','need more','refill','procurement','khatam','kam stock','stock kam','stock nahi','stock bharo','kitna mangana','kitna mangaye','order karu','kya mangau','kya kharidna','reorder','re-order','stock order'}
+_TOP_SELL = {'top','best','most selling','popular','trending','sells most','what sells','highest','bestseller','best seller','sabse zyada','top seller','hit product','fast moving','hot selling','star product','winner','sabse jyada','zyada bikta','zyada bika','sabse zyada bika','best product','top product','most sold','best selling','highest selling','top selling','sabse zyada bikne','konsa zyada','kya zyada bikta','kya sabse zyada','jo sabse zyada'}
+_DEAD = {'dead','slow','not selling','stagnant','stuck','no sales','waste','idle','bikta nahi','nahi bikta','slow moving','non moving','zero sales','poor performance','dust collecting','shelf warmer','least sold','least selling','kam biki','kam bikta','sabse kam','sabse kam bika','sabse kam biki','kam biknewala','nahi bik raha','nahi bikta','kya nahi bik','konsa nahi bik','flop','flop product','worst','worst selling','bottom','lowest selling','least popular','least','lowest'}
+_DEMAND = {'demand','potential','will sell','grow','increase','predict','forecast','future','aage','coming demand','rising','growth','opportunity','scope','high potential','momentum','surge','spike','uptick','kya bikegi','kya chalega','kya badhega','aage kya','future demand','kaunsa chalega','konsa chalega','kya demand','badhne wala'}
+_FESTIVAL = {'festival','holiday','event','occasion','upcoming','celebration','diwali','holi','eid','tyohar','christmas','raksha bandhan','navratri','ganesh','onam','pongal','makar','lohri','baisakhi','durga puja','chhath','tyohaar','tehwar','parv','utsav'}
+_SALES = {'sales','revenue','earnings','money','income','how much','bikri','kamai','turnover','total sales','aaj ki bikri','paisa','kitna kamaya','collection','gross','net','receipt','kitna becha','kitne paise','aaj ka hisab','paise','income','aaj kitna','weekly sales','monthly sales','hafta','mahina','aaj ka sale','aaj ki sale','sale kitna'}
+_STOCK = {'stock','inventory','products','items','catalog','how many','kitna maal','warehouse','godown','store','saman','product list','stock level','stock check','maal','available','kitna bacha','kitna hai','stock kitna','maal kitna','godown me','godown mein','stock kya','inventory check','product kitna'}
+_PROFIT = {'profit','margin','earning','how much am i making','kitna kama','munafa','fayda','net profit','gross profit','profit margin','kamai','return','roi','net income','bottom line','kitna kamaya','kitna fayda','kya fayda','total profit','profit kitna','munafe','kamaa','kama raha'}
+_TAX = {'gst','tax','itr','income tax','section 44','filing','return file','tax return','kar','gst return','taxation','tds','advance tax','presumptive','44ad','44ada','composition','composition scheme','gstr','gst filing','tax kitna','kitna tax','gst kitna','tax dena','tax bharna'}
+_TODAY = {'what should i do','today','right now','summary','daily','aaj','aaj ka','daily summary','morning brief','kya karu','action','to do','todo','kaam','aaj kya','kya karna','kya karna hai','kya karna chahiye','plan','daily plan','aaj ka plan'}
 
 # ── TAX JARGON EXPLAINER ──────────────────────────────────────────────
 TAX_EXPLANATIONS = {
-    'gst': "**GST (Goods & Services Tax)** is a single tax on the supply of goods and services in India. It replaced many indirect taxes like VAT, excise duty, and service tax.\n\n**In simple terms:** Whenever you sell something, a percentage of that sale goes to the government as GST. The rate depends on what you sell:\n  0% — Essential items (milk, grains, fresh produce)\n  5% — Daily-use items (grocery, packaged food)\n  12-18% — Standard goods (electronics, general items)\n\nYou collect GST from your customer and pay it to the government.",
-    'cgst': "**CGST (Central GST)** is the portion of GST that goes to the Central Government.\n\n**Simple explanation:** When you charge 18% GST, half (9%) goes to the Central Govt as CGST and half (9%) goes to your State Govt as SGST. You don't pay extra — it's just split between two governments.",
-    'sgst': "**SGST (State GST)** is the portion of GST that goes to your State Government.\n\n**Simple explanation:** It's exactly half of the total GST rate. If total GST is 18%, SGST = 9%. This money stays in your state for development.",
-    'igst': "**IGST (Integrated GST)** applies when you sell goods to a customer in another state.\n\n**Simple explanation:** Instead of splitting into CGST+SGST, the full GST goes as IGST to the Central Govt, which then shares it with the receiving state. Rate is the same — only the label changes.",
-    'section 44ad': "**Section 44AD** is a scheme for small businesses to file taxes easily without maintaining detailed books.\n\n**Simple explanation:** Instead of tracking every expense, the government assumes your profit is:\n  6% of income received digitally (UPI, bank transfer)\n  8% of cash income\n\nYou pay tax only on this assumed profit. Great for businesses with turnover under Rs.2-3 Crore.",
-    '44ad': "**Section 44AD** lets small businesses declare profit as 6% (digital) or 8% (cash) of turnover without maintaining detailed books of accounts. If your actual profit margin is higher than 8%, this saves you from keeping complex records. Turnover limit: Rs.3 Crore (if 95%+ digital payments) or Rs.2 Crore otherwise.",
-    '44ada': "**Section 44ADA** is like 44AD but for professionals (doctors, lawyers, CAs, architects, etc.).\n\n**Simple explanation:** Professionals can declare 50% of their gross receipts as profit. Turnover limit: Rs.75 Lakh (if 95%+ digital) or Rs.50 Lakh otherwise.",
-    'composition scheme': "**GST Composition Scheme** is a simplified GST payment option for small businesses.\n\n**Simple explanation:** Instead of charging different GST rates on each product and filing monthly returns, you pay a flat 1% of your total turnover as tax and file quarterly returns.\n\n**But there are restrictions:**\n  You can't collect GST from customers\n  You can't claim Input Tax Credit\n  You can only sell within your state\n  Turnover must be under Rs.1.5 Crore",
-    'itr': "**ITR (Income Tax Return)** is a form you file annually to report your income and taxes to the government.\n\n**Simple explanation:** Every year (usually by July 31), you tell the government how much you earned and how much tax you owe. If you've already paid more tax than needed (TDS), you get a refund!",
-    'tds': "**TDS (Tax Deducted at Source)** means tax is deducted by the payer before paying you.\n\n**Simple explanation:** If a company pays you Rs.1,00,000 for services, they might deduct Rs.10,000 as TDS and pay you Rs.90,000. The Rs.10,000 goes directly to the government. You can claim this back when filing your ITR if your total tax is less.",
-    'input tax credit': "**Input Tax Credit (ITC)** means you can reduce your GST liability by the GST you already paid on purchases.\n\n**Simple explanation:** If you buy goods worth Rs.1000 + Rs.180 GST = Rs.1180, and sell them for Rs.1500 + Rs.270 GST = Rs.1770, you only pay Rs.270 - Rs.180 = Rs.90 as GST to the government. The Rs.180 you already paid is your Input Tax Credit.",
-    'itc': "**ITC (Input Tax Credit)** — The GST you paid when buying goods can be subtracted from the GST you collect when selling. This way you only pay the difference to the government, not the full amount. Think of it as a refund of tax already paid.",
-    'rebate 87a': "**Section 87A Rebate** gives you a tax discount if your income is below a certain limit.\n\n**Simple explanation:**\n  New Regime: If taxable income is up to Rs.12 Lakh, you get a rebate of up to Rs.60,000 (effectively zero tax)\n  Old Regime: If taxable income is up to Rs.5 Lakh, you get a rebate of up to Rs.12,500\n\nThis means many small business owners pay ZERO income tax!",
-    '87a': "**Section 87A** — If your annual taxable income is under Rs.12 Lakh (new regime) or Rs.5 Lakh (old regime), you get a rebate that can make your income tax effectively zero. Most small MSME owners qualify for this.",
-    'new regime': "**New Tax Regime** has lower tax rates but NO deductions (no 80C, 80D, HRA, etc.).\n\n**Tax slabs (FY 2025-26):**\n  Up to Rs.4L — 0%\n  Rs.4-8L — 5%\n  Rs.8-12L — 10%\n  Rs.12-16L — 15%\n  Rs.16-20L — 20%\n  Rs.20-24L — 25%\n  Above Rs.24L — 30%\n\nPlus 87A rebate up to Rs.12L taxable income = zero tax for most MSMEs.",
-    'old regime': "**Old Tax Regime** has higher rates but allows deductions under 80C (Rs.1.5L), 80D (health insurance), HRA, etc.\n\n**Use Old Regime if:** You have large deductions (LIC, PPF, home loan, health insurance). Otherwise, the New Regime is usually better for small businesses.",
-    'msme': "**MSME** stands for Micro, Small and Medium Enterprises.\n\n**Classification:**\n  Micro — Investment up to Rs.1 Cr, Turnover up to Rs.5 Cr\n  Small — Investment up to Rs.10 Cr, Turnover up to Rs.50 Cr\n  Medium — Investment up to Rs.50 Cr, Turnover up to Rs.250 Cr\n\n**Benefits of MSME registration (Udyam):**\n  Priority bank lending at lower interest\n  Protection against delayed payments\n  Subsidy on patent/trademark registration\n  Government tender preference",
-    'udyam': "**Udyam Registration** is the free online registration for MSMEs by the Government of India.\n\n**Simple explanation:** Register your business at udyamregistration.gov.in with your Aadhaar. It's free and gives you access to government schemes, easier bank loans, and protection against payment delays from big buyers.",
-    'cess': "**Health & Education Cess** is an additional 4% charged on your income tax amount.\n\n**Simple explanation:** After calculating your income tax, add 4% extra. If your tax is Rs.10,000, you pay Rs.10,400 total. This extra money funds healthcare and education programs."
+    'gst': """**GST (Goods & Services Tax)** is a single tax on the supply of goods and services in India. It replaced many indirect taxes like VAT, excise duty, and service tax.\n\n**In simple terms:** Whenever you sell something, a percentage of that sale goes to the government as GST. The rate depends on what you sell:\n  0% — Essential items (milk, grains, fresh produce)\n  5% — Daily-use items (grocery, packaged food)\n  12-18% — Standard goods (electronics, general items)\n\nYou collect GST from your customer and pay it to the government.""",
+    'cgst': """**CGST (Central GST)** is the portion of GST that goes to the Central Government.\n\n**Simple explanation:** When you charge 18% GST, half (9%) goes to the Central Govt as CGST and half (9%) goes to your State Govt as SGST. You don't pay extra — it's just split between two governments.""",
+    'sgst': """**SGST (State GST)** is the portion of GST that goes to your State Government.\n\n**Simple explanation:** It's exactly half of the total GST rate. If total GST is 18%, SGST = 9%. This money stays in your state for development.""",
+    'igst': """**IGST (Integrated GST)** applies when you sell goods to a customer in another state.\n\n**Simple explanation:** Instead of splitting into CGST+SGST, the full GST goes as IGST to the Central Govt, which then shares it with the receiving state. Rate is the same — only the label changes.""",
+    'section 44ad': """**Section 44AD** is a scheme for small businesses to file taxes easily without maintaining detailed books.\n\n**Simple explanation:** Instead of tracking every expense, the government assumes your profit is:\n  6% of income received digitally (UPI, bank transfer)\n  8% of cash income\n\nYou pay tax only on this assumed profit. Great for businesses with turnover under Rs.2-3 Crore.""",
+    '44ad': """**Section 44AD** lets small businesses declare profit as 6% (digital) or 8% (cash) of turnover without maintaining detailed books of accounts. If your actual profit margin is higher than 8%, this saves you from keeping complex records. Turnover limit: Rs.3 Crore (if 95%+ digital payments) or Rs.2 Crore otherwise.""",
+    '44ada': """**Section 44ADA** is like 44AD but for professionals (doctors, lawyers, CAs, architects, etc.).\n\n**Simple explanation:** Professionals can declare 50% of their gross receipts as profit. Turnover limit: Rs.75 Lakh (if 95%+ digital) or Rs.50 Lakh otherwise.""",
+    'composition scheme': """**GST Composition Scheme** is a simplified GST payment option for small businesses.\n\n**Simple explanation:** Instead of charging different GST rates on each product and filing monthly returns, you pay a flat 1% of your total turnover as tax and file quarterly returns.\n\n**But there are restrictions:**\n  You can't collect GST from customers\n  You can't claim Input Tax Credit\n  You can only sell within your state\n  Turnover must be under Rs.1.5 Crore""",
+    'itr': """**ITR (Income Tax Return)** is a form you file annually to report your income and taxes to the government.\n\n**Simple explanation:** Every year (usually by July 31), you tell the government how much you earned and how much tax you owe. If you've already paid more tax than needed (TDS), you get a refund!""",
+    'tds': """**TDS (Tax Deducted at Source)** means tax is deducted by the payer before paying you.\n\n**Simple explanation:** If a company pays you Rs.1,00,000 for services, they might deduct Rs.10,000 as TDS and pay you Rs.90,000. The Rs.10,000 goes directly to the government. You can claim this back when filing your ITR if your total tax is less.""",
+    'input tax credit': """**Input Tax Credit (ITC)** means you can reduce your GST liability by the GST you already paid on purchases.\n\n**Simple explanation:** If you buy goods worth Rs.1000 + Rs.180 GST = Rs.1180, and sell them for Rs.1500 + Rs.270 GST = Rs.1770, you only pay Rs.270 - Rs.180 = Rs.90 as GST to the government. The Rs.180 you already paid is your Input Tax Credit.""",
+    'itc': """**ITC (Input Tax Credit)** — The GST you paid when buying goods can be subtracted from the GST you collect when selling. This way you only pay the difference to the government, not the full amount. Think of it as a refund of tax already paid.""",
+    'rebate 87a': """**Section 87A Rebate** gives you a tax discount if your income is below a certain limit.\n\n**Simple explanation:**\n  New Regime: If taxable income is up to Rs.12 Lakh, you get a rebate of up to Rs.60,000 (effectively zero tax)\n  Old Regime: If taxable income is up to Rs.5 Lakh, you get a rebate of up to Rs.12,500\n\nThis means many small business owners pay ZERO income tax!""",
+    '87a': """**Section 87A** — If your annual taxable income is under Rs.12 Lakh (new regime) or Rs.5 Lakh (old regime), you get a rebate that can make your income tax effectively zero. Most small MSME owners qualify for this.""",
+    'new regime': """**New Tax Regime** has lower tax rates but NO deductions (no 80C, 80D, HRA, etc.).\n\n**Tax slabs (FY 2025-26):**\n  Up to Rs.4L — 0%\n  Rs.4-8L — 5%\n  Rs.8-12L — 10%\n  Rs.12-16L — 15%\n  Rs.16-20L — 20%\n  Rs.20-24L — 25%\n  Above Rs.24L — 30%\n\nPlus 87A rebate up to Rs.12L taxable income = zero tax for most MSMEs.""",
+    'old regime': """**Old Tax Regime** has higher rates but allows deductions under 80C (Rs.1.5L), 80D (health insurance), HRA, etc.\n\n**Use Old Regime if:** You have large deductions (LIC, PPF, home loan, health insurance). Otherwise, the New Regime is usually better for small businesses.""",
+    'msme': """**MSME** stands for Micro, Small and Medium Enterprises.\n\n**Classification:**\n  Micro — Investment up to Rs.1 Cr, Turnover up to Rs.5 Cr\n  Small — Investment up to Rs.10 Cr, Turnover up to Rs.50 Cr\n  Medium — Investment up to Rs.50 Cr, Turnover up to Rs.250 Cr\n\n**Benefits of MSME registration (Udyam):**\n  Priority bank lending at lower interest\n  Protection against delayed payments\n  Subsidy on patent/trademark registration\n  Government tender preference""",
+    'udyam': """**Udyam Registration** is the free online registration for MSMEs by the Government of India.\n\n**Simple explanation:** Register your business at udyamregistration.gov.in with your Aadhaar. It's free and gives you access to government schemes, easier bank loans, and protection against payment delays from big buyers.""",
+    'cess': """**Health & Education Cess** is an additional 4% charged on your income tax amount.\n\n**Simple explanation:** After calculating your income tax, add 4% extra. If your tax is Rs.10,000, you pay Rs.10,400 total. This extra money funds healthcare and education programs."""
 }
 
 def _match_explain(msg):
@@ -70,6 +70,22 @@ def get_top_products(limit=3, user_id='demo'):
     conn.close()
     return [dict(t) for t in top]
 
+def get_least_products(limit=5, user_id='demo'):
+    """Get least selling products (bottom performers)."""
+    conn = get_connection()
+    bottom = conn.execute("""
+        SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty
+        FROM products p
+        LEFT JOIN sales s ON s.product_id = p.id AND s.sold_at >= date('now', '-30 days')
+        WHERE p.user_id = ?
+        GROUP BY p.id
+        HAVING p.stock > 0
+        ORDER BY total_qty ASC
+        LIMIT ?
+    """, (user_id, limit)).fetchall()
+    conn.close()
+    return [dict(t) for t in bottom]
+
 def get_today_sales(user_id='demo'):
     conn = get_connection()
     stats = conn.execute("""
@@ -90,12 +106,15 @@ def _build_response(title, bullets, closing=None):
     return "\n".join(lines)
 
 def _match_any(msg, words_set):
-    """Check if any keyword/phrase from words_set appears in msg."""
+    """Check if any keyword/phrase from words_set appears in msg.
+    Multi-word phrases: substring match.
+    Single words: first try exact word match, then fallback to substring match."""
     for kw in words_set:
         if ' ' in kw:
             if kw in msg:
                 return True
         else:
+            # Check as exact word first
             if kw in msg.split():
                 return True
     return False
@@ -244,10 +263,36 @@ def get_response(message: str, user_id='demo') -> str:
             "Consider keeping these items well-stocked at all times."
         )
 
-    # -- DEAD STOCK -----------------------------------------------------
+    # -- DEAD STOCK / LEAST SELLING --------------------------------------
     if _match_any(msg, _DEAD):
+        # Check if user is asking specifically about least selling (not dead stock)
+        least_keywords = {'least sold','least selling','kam biki','kam bikta','sabse kam','sabse kam bika','sabse kam biki','worst selling','lowest selling','least popular','lowest','least','bottom','worst','flop'}
+        is_least_query = any(kw in msg for kw in least_keywords)
+
+        if is_least_query:
+            # Show least selling products (products that exist but sell the least)
+            bottom = get_least_products(limit=5, user_id=user_id)
+            if not bottom:
+                return "No product data found yet. Add products and start billing to track performance."
+            bullets = [f"{p['name']} -- {p['total_qty']} units sold this month" for p in bottom]
+            return _build_response(
+                "Your least selling products (last 30 days):",
+                bullets,
+                "Tip: Consider discounts, bundling, or promoting these items to move stock faster."
+            )
+
+        # Default: show dead stock (no sales at all)
         dead = get_dead_stock(user_id)
         if not dead:
+            # Fallback to least selling if no dead stock
+            bottom = get_least_products(limit=5, user_id=user_id)
+            if bottom:
+                bullets = [f"{p['name']} -- {p['total_qty']} units sold this month" for p in bottom]
+                return _build_response(
+                    "No dead stock found! But here are your slowest movers (last 30 days):",
+                    bullets,
+                    "Tip: Consider discounts or promotions on slow movers to free up capital."
+                )
             return "Great news! No dead stock detected. All products have had recent sales."
         bullets = [
             f"{d['name']} -- {d['stock']} units sitting idle, last sold: {d['days_since']}"

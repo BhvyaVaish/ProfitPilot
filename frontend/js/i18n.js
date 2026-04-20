@@ -272,29 +272,35 @@ const regexRules = [
 
 let currentLang = localStorage.getItem("profitpilot_lang") || "en";
 let translationCache = new Map();
-
-function initLanguage() {
-  const langEn = document.querySelectorAll(".lang-en");
-  const langHi = document.querySelectorAll(".lang-hi");
-  
-  if (currentLang === "hi") {
-    langEn.forEach(el => el.classList.remove("active"));
-    langHi.forEach(el => el.classList.add("active"));
-    applyTranslation();
-  } else {
-    langEn.forEach(el => el.classList.add("active"));
-    langHi.forEach(el => el.classList.remove("active"));
-  }
-}
+let _originalTexts = new Map(); // Store original text for reverting
 
 function toggleLanguage() {
   currentLang = currentLang === "en" ? "hi" : "en";
   localStorage.setItem("profitpilot_lang", currentLang);
   
+  const langEn = document.querySelectorAll(".lang-en");
+  const langHi = document.querySelectorAll(".lang-hi");
+
   if (currentLang === "hi") {
-    initLanguage();
+    langEn.forEach(el => el.classList.remove("active"));
+    langHi.forEach(el => el.classList.add("active"));
+    applyTranslation();
+    observeDOM();
   } else {
-    window.location.reload();
+    // Restore original English text without reloading
+    langEn.forEach(el => el.classList.add("active"));
+    langHi.forEach(el => el.classList.remove("active"));
+    observer.disconnect();
+    _originalTexts.forEach((original, node) => {
+      if (node.parentNode) node.nodeValue = original;
+    });
+    _originalTexts.clear();
+    translationCache.clear();
+    // Restore input placeholders
+    document.querySelectorAll('input[data-original-ph], textarea[data-original-ph]').forEach(input => {
+      input.setAttribute('placeholder', input.getAttribute('data-original-ph'));
+      input.removeAttribute('data-original-ph');
+    });
   }
 }
 
@@ -339,6 +345,10 @@ function applyTranslation() {
 
     const newText = translateSingleText(text);
     if (newText !== text) {
+      // Store the original ONLY if we haven't already (don't overwrite with Hindi)
+      if (!_originalTexts.has(node)) {
+        _originalTexts.set(node, text);
+      }
       nodesToUpdate.push({ node, text: newText });
     }
   }
@@ -352,6 +362,10 @@ function applyTranslation() {
   inputs.forEach(input => {
       const ph = input.getAttribute('placeholder');
       if (ph) {
+          // Store original placeholder if not already stored
+          if (!input.hasAttribute('data-original-ph')) {
+            input.setAttribute('data-original-ph', ph);
+          }
           input.setAttribute('placeholder', translateSingleText(ph));
       }
   });
@@ -388,8 +402,16 @@ function observeDOM() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    initLanguage();
+    // Apply initial language on load
+    const langEn = document.querySelectorAll(".lang-en");
+    const langHi = document.querySelectorAll(".lang-hi");
     if (currentLang === "hi") {
+      langEn.forEach(el => el.classList.remove("active"));
+      langHi.forEach(el => el.classList.add("active"));
+      applyTranslation();
       observeDOM();
+    } else {
+      langEn.forEach(el => el.classList.add("active"));
+      langHi.forEach(el => el.classList.remove("active"));
     }
 });
