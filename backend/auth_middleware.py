@@ -16,10 +16,11 @@ def init_firebase_admin():
     Falls back to unverified JWT decoding if neither is found (dev only).
     """
     global _firebase_app
-    if _firebase_app:
+    if _firebase_app or firebase_admin._apps:
+        _firebase_app = _firebase_app or firebase_admin.get_app()
         return _firebase_app
 
-    sa_b64 = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+    sa_b64 = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
     if sa_b64:
         try:
             sa_json = base64.b64decode(sa_b64).decode("utf-8")

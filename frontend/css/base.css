@@ -105,3 +105,18 @@ p { color: var(--text-secondary); }
 
 /* ── Global smooth transitions ────────────────────────────────────── */
 img, svg { max-width: 100%; height: auto; }
+
+/* ── API Loading Bar (cold-start indicator) ─────────────────────── */
+body.api-loading::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-orange), var(--accent-blue));
+  animation: loading-bar 1.5s ease infinite;
+  z-index: 9999;
+}
+@keyframes loading-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}

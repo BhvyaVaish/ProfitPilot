@@ -12,14 +12,29 @@ async function apiCall(endpoint, method = 'GET', body = null) {
 
   if (body) options.body = JSON.stringify(body);
 
+  // Add AbortController for timeout (35s covers Render cold starts)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 35000);
+  options.signal = controller.signal;
+
+  document.body.classList.add('api-loading');
+
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    clearTimeout(timeoutId);
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'API Error');
     return data;
   } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      showToast('Server is warming up. Please try again in a few seconds.', 'error');
+      throw new Error('Server is warming up. Please try again in a few seconds.');
+    }
     showToast(error.message, 'error');
     throw error;
+  } finally {
+    document.body.classList.remove('api-loading');
   }
 }
 

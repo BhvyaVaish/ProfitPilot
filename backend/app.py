@@ -15,7 +15,7 @@ import os
 # from the repo root via api/index.py
 sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask, g
+from flask import Flask, g, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -56,6 +56,32 @@ app.register_blueprint(chatbot_bp)
 app.register_blueprint(festivals_bp)
 app.register_blueprint(upload_bp)
 app.register_blueprint(tax_bp)
+
+
+# ── Health check ────────────────────────────────────────────────────────────
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({"status": "ok", "service": "ProfitPilot Backend"}), 200
+
+
+# ── Global error handlers ───────────────────────────────────────────────────
+
+@app.errorhandler(400)
+def bad_request(e):
+    return jsonify({"error": "Bad request", "message": str(e)}), 400
+
+@app.errorhandler(401)
+def unauthorized(e):
+    return jsonify({"error": "Unauthorized", "message": str(e)}), 401
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Not found", "message": str(e)}), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({"error": "Internal server error", "message": str(e)}), 500
 
 
 # ── Static page routes ──────────────────────────────────────────────────────
