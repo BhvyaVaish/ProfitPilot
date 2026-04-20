@@ -1,16 +1,29 @@
 /* ── Auth Page Logic ─────────────────────────────────────────────── */
 
 // If already logged in, redirect away
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    const status = await checkUserOnboarded();
-    if (status.onboarded) {
-      window.location.href = '/';
-    } else {
-      window.location.href = '/onboarding';
-    }
+function _initAuthPage() {
+  if (!auth) {
+    console.warn('[Auth] Firebase not initialized — skipping auth state listener.');
+    return;
   }
-});
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      const status = await checkUserOnboarded();
+      if (status.onboarded) {
+        window.location.href = '/';
+      } else {
+        window.location.href = '/onboarding';
+      }
+    }
+  });
+}
+
+// Wait for Firebase to be ready before attaching auth listener
+if (window._firebaseReady) {
+  _initAuthPage();
+} else {
+  window.addEventListener('firebase-ready', _initAuthPage);
+}
 
 function switchTab(tab) {
   const signinForm = document.getElementById('signin-form');
@@ -93,6 +106,8 @@ async function handleSignIn(e) {
 
   setLoading('signin-btn', true);
 
+  if (!auth) { showError('Firebase is not initialized. Please check that all Firebase environment variables are set on the server.'); setLoading('signin-btn', false); return; }
+
   try {
     await signInWithEmail(email, password);
     // onAuthStateChanged handles redirect
@@ -133,6 +148,8 @@ async function handleSignUp(e) {
 
   setLoading('signup-btn', true);
 
+  if (!auth) { showError('Firebase is not initialized. Please check that all Firebase environment variables are set on the server.'); setLoading('signup-btn', false); return; }
+
   try {
     const user = await signUpWithEmail(email, password);
     await updateDisplayName(name);
@@ -147,6 +164,8 @@ async function handleSignUp(e) {
 async function handleGoogleSignIn() {
   hideMessages();
   setLoading('google-btn', true);
+
+  if (!auth || !googleProvider) { showError('Firebase is not initialized. Please check that all Firebase environment variables are set on the server.'); setLoading('google-btn', false); return; }
 
   try {
     await signInWithGoogle();
@@ -197,7 +216,7 @@ function _friendlyError(code) {
     'auth/cancelled-popup-request':   'Sign-in was cancelled. Please try again.',
   };
 
-  const msg = messages[code] || `Authentication error: ${code}`;
+  const msg = messages[code] || (code ? `Authentication error: ${code}` : 'Authentication failed. Please try again.');
   const suggestSignUp = noAccountCodes.includes(code);
   return { msg, suggestSignUp };
 }
