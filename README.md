@@ -51,7 +51,7 @@ Every user's data is completely isolated. Sign in with email or Google. Onboardi
 
 ## 🌐 Live Demo
 
-**[→ Open ProfitPilot](https://profitpilot.vercel.app)**
+**[→ Open ProfitPilot](https://profitpilotio.vercel.app/)**
 
 > **This is the intended way to experience ProfitPilot.**
 > ProfitPilot is a full-stack cloud application. Authentication, AI insights, dynamic analytics, and database operations are designed to run seamlessly in our production environment. 
@@ -163,7 +163,7 @@ ProfitPilot is installable as a Progressive Web App (PWA) directly from the brow
 
 ## 📎 Links
 
-- **Live App:** [profitpilot.vercel.app](https://profitpilot.vercel.app)
+- **Live App:** [profitpilot.vercel.app](https://profitpilotio.vercel.app/)
 - **GitHub:** [github.com/bhvyavaish/ProfitPilot](https://github.com/bhvyavaish/ProfitPilot)
 
 ---
