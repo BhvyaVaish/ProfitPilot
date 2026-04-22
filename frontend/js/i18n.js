@@ -161,28 +161,55 @@ const dictionary = {
   "Send": "भेजें",
   "Suggested Questions": "ये पूछ सकते हैं",
 
-  // About Page
+  // About Page — Full translations
   "About ProfitPilot": "ProfitPilot के बारे में",
   "Your business on autopilot. Effortless growth for MSMEs.": "आपका व्यापार अब चलेगा ऑटो-पायलट पर। छोटे व्यापारियों की तरक्की का राज़।",
-  "What is ProfitPilot?": "ProfitPilot क्या है?",
-  "ProfitPilot is an AI-powered retail management platform designed specifically for MSMEs. We turn your daily operational headaches into massive growth opportunities. Say goodbye to messy notebooks and confusing spreadsheets!": "ProfitPilot खासतौर पर छोटे व्यापारियों (MSME) के लिए बना AI से चलने वाला एक स्मार्ट प्लेटफॉर्म है। यह आपके रोज़मर्रा के काम का बोझ कम करके मुनाफ़ा बढ़ाता है। डायरी, पर्ची और पुराने बहीखातों को कहिए अलविदा!",
-  "How does it work?": "यह कैसे काम करता है?",
-  "Simply sign up, add your stock and start billing! Our smart algorithms automatically track successful sales behind the scenes, manage your delicate inventory and predict what items you need to restock before you even run out.": "बस अपना अकाउंट बनाएं, सामान डालें और पक्के बिल काटना शुरू करें! हमारा स्मार्ट सिस्टम खुद-ब-खुद आपकी सारी सेल का हिसाब रखेगा, आपके बचे हुए गोडाउन के माल पर नज़र रखेगा और आपको माल खत्म होने से पहले अलर्ट कर देगा।",
-  "Getting Started is Easy!": "शुरुआत करना है बहुत आसान!",
-  "1. Add Products to your digital store": "1. अपनी ऑनलाइन दुकान में सामान डालें",
-  "2. Generate Bills in a few clicks": "2. एक क्लिक में पक्के बिल बनाएं",
-  "3. Track your daily progress instantly": "3. अपनी रोज़ की तरक्की तुरंत देखें",
-  "4. Get smart business advice via Assistant": "4. असिस्टेंट से समझदार बिज़नेस सलाह लें",
-  "5. Watch Profits Grow magically": "5. फिर जादू की तरह अपना मुनाफा बढ़ता देखें",
-  "Why choose us?": "ProfitPilot को क्यों चुनें?",
-  "Zero Paperwork": "कोई कागज़ी झंझट नहीं",
-  "Everything is digital, blazingly fast and completely secure in the cloud.": "सब कुछ डिजिटल, तेज़ और पूरी तरह से सुरक्षित है।",
+  "ProfitPilot is your intelligent retail management partner, designed to automate daily operations, optimize inventory, and supercharge your business growth.": "ProfitPilot आपका स्मार्ट रिटेल मैनेजमेंट पार्टनर है, जो आपके रोज़मर्रा के काम को ऑटोमेट करता है, स्टॉक को बेहतर बनाता है और आपके व्यापार को तेज़ी से बढ़ाता है।",
+
+  // About — Beyond Billing card
+  "Beyond a Simple Billing Tool": "सिर्फ बिलिंग से कहीं ज़्यादा",
+  "We understand the unique challenges faced by small business owners. From messy spreadsheets to unpredictable cash flows, keeping track of everything can be overwhelming. ProfitPilot turns operational headaches into streamlined, data-driven decisions.": "हम छोटे व्यापारियों की मुश्किलें समझते हैं। उलझे हुए हिसाब-किताब से लेकर अनिश्चित कैश फ्लो तक — सब कुछ ट्रैक करना बहुत मुश्किल हो जाता है। ProfitPilot इन सब परेशानियों को आसान, डेटा-आधारित फैसलों में बदल देता है।",
+
+  // About — How it works
+  "The Core Engine": "हमारा स्मार्ट इंजन",
+  "Our advanced algorithms work silently behind the scenes. Every time you generate a bill, ProfitPilot updates your inventory, recalculates your estimated profit margins, and updates your dashboard with live business health scores. We analyze your sales velocity to predict exact restock dates before you run out of fast-moving items.": "हमारे एडवांस्ड एल्गोरिदम चुपचाप काम करते रहते हैं। जब भी आप बिल बनाते हैं, ProfitPilot आपका स्टॉक अपडेट करता है, मुनाफे का हिसाब लगाता है और डैशबोर्ड में लाइव बिज़नेस स्कोर दिखाता है। हम आपकी सेल की रफ़्तार देखकर बताते हैं कि कौन सा सामान कब खत्म होने वाला है।",
+  "Start in Minutes": "मिनटों में शुरू करें",
+  "Add your digital inventory": "अपना डिजिटल स्टॉक डालें",
+  "Generate professional bills": "प्रोफेशनल बिल बनाएं",
+  "Track real-time analytics": "रियल-टाइम आंकड़े देखें",
+  "Consult your AI Assistant": "AI असिस्टेंट से पूछें",
+
+  // About — Why Choose Us
+  "Why Choose ProfitPilot?": "ProfitPilot क्यों चुनें?",
+  "Frictionless Management": "झंझट-मुक्त मैनेजमेंट",
+  "Move entirely to the cloud. Ditch physical registers and access your shop's heartbeat from anywhere on any device securely.": "पूरी तरह क्लाउड पर जाएं। पुराने रजिस्टर छोड़ें और अपनी दुकान का हाल किसी भी डिवाइस से, कहीं से भी सुरक्षित देखें।",
   "Supercharge Your Sales": "अपनी सेल को राकेट की तरह बढ़ाएं",
-  "Know exactly what products are selling hot and what is lying dead in the godown.": "जानिए कौन सा सामान ज़ोरों से बिक रहा है और क्या गोडाउन में सड़ कर पैसा डूबा रहा है।",
-  "Easy Tax & GST": "आसान टैक्स और GST",
-  "No more calculator stress! Get auto-calculated GST and friendly Income Tax estimates.": "कैलकुलेटर की माथापच्ची खत्म! अपने आप GST और इनकम टैक्स का हिसाब पाएं।",
-  "Intelligent Assistant": "आपका अपना होशियार असिस्टेंट",
-  "Just ask our AI Assistant any business question and get smart, data-driven answers instantly.": "हमारे AI असिस्टेंट से व्यापार का कोई भी सवाल पूछें और तुरंत सही जवाब पाएं।",
+  "Identify trending products quickly. Our algorithms tell you exactly what brings the most margin and what ties up capital.": "ट्रेंडिंग प्रोडक्ट्स जल्दी पहचानें। हमारे एल्गोरिदम बताते हैं कि किस सामान पर सबसे ज़्यादा मुनाफा है और कौन सा पैसा रोके हुए है।",
+  "Demystified Tax & GST": "GST और टैक्स का आसान हिसाब",
+  "Stop stressing over complex tax structures. We automatically calculate GST, estimate profit, and explain MSME tax jargon simply.": "जटिल टैक्स के चक्कर से छुटकारा पाएं। हम अपने आप GST कैलकुलेट करते हैं, मुनाफे का अनुमान देते हैं और MSME टैक्स को सरल भाषा में समझाते हैं।",
+  "AI-Driven Assistant": "AI से चलने वाला असिस्टेंट",
+  "Your personalized business consultant. Ask inventory questions, get actionable insights, and navigate finances with an intelligent companion.": "आपका पर्सनल बिज़नेस सलाहकार। स्टॉक के सवाल पूछें, काम के सुझाव पाएं और एक समझदार साथी के साथ अपना कारोबार चलाएं।",
+
+  // About — FAQ
+  "Frequently Asked Questions": "अक्सर पूछे जाने वाले सवाल",
+  "What kind of businesses is ProfitPilot built for?": "ProfitPilot किस तरह के व्यापार के लिए बना है?",
+  "ProfitPilot is designed specifically for Indian Micro, Small, and Medium Enterprises (MSMEs). Whether you run a retail shop, a hardware store, an electronics outlet, or a grocery market, our platform adapts to your inventory style and billing needs without requiring an accounting background.": "ProfitPilot खासतौर पर भारतीय Micro, Small और Medium Enterprises (MSMEs) के लिए बना है। चाहे आपकी किराना दुकान हो, हार्डवेयर स्टोर हो, इलेक्ट्रॉनिक्स की दुकान हो या सब्ज़ी-फल का कारोबार — हमारा प्लेटफॉर्म आपकी ज़रूरत के हिसाब से काम करता है, बिना किसी अकाउंटिंग की जानकारी के।",
+  "How will ProfitPilot help me manage my taxes?": "ProfitPilot मेरे टैक्स मैनेज करने में कैसे मदद करेगा?",
+  "We take the headache out of GST and Income Tax. As you generate bills, ProfitPilot automatically calculates category-wise GST. It also features a Tax Estimator that compares the New vs. Old Income Tax Regimes and checks if your turnover qualifies for Section 44AD or the GST Composition Scheme, helping you save money legally.": "हम GST और इनकम टैक्स की परेशानी खत्म कर देते हैं। जैसे ही आप बिल बनाते हैं, ProfitPilot अपने आप कैटेगरी के हिसाब से GST कैलकुलेट करता है। इसमें एक Tax Estimator भी है जो New और Old Tax Regime की तुलना करता है और बताता है कि आप Section 44AD या GST Composition Scheme के लिए योग्य हैं या नहीं — ताकि आप कानूनी तरीके से पैसे बचा सकें।",
+  "Do I need to manually enter my entire inventory one by one?": "क्या मुझे अपना सारा स्टॉक एक-एक करके हाथ से डालना होगा?",
+  "Not at all! If you already have a list of your products in Excel or another software, you can upload a simple CSV file to import your entire inventory in one click. You can also easily add new items manually whenever needed.": "बिल्कुल नहीं! अगर आपके पास Excel या किसी सॉफ्टवेयर में प्रोडक्ट्स की लिस्ट है, तो बस एक CSV फाइल अपलोड करें और पूरा स्टॉक एक क्लिक में आ जाएगा। ज़रूरत पड़ने पर नए आइटम मैन्युअल भी जोड़ सकते हैं।",
+  "Is my business data secure?": "क्या मेरा बिज़नेस डेटा सुरक्षित है?",
+  "Absolutely. We use enterprise-grade cloud security and multi-tenant database architecture. This ensures your business data, inventory, and sales are strictly isolated and accessible only by you when you log in securely.": "बिल्कुल। हम एंटरप्राइज़-ग्रेड क्लाउड सिक्योरिटी और मल्टी-टेनेंट डेटाबेस का इस्तेमाल करते हैं। इससे आपका बिज़नेस डेटा, स्टॉक और बिक्री की जानकारी पूरी तरह अलग और सुरक्षित रहती है — सिर्फ आप ही इसे लॉगिन करके देख सकते हैं।",
+  "How is the AI Assistant different from a regular search bar?": "AI असिस्टेंट एक साधारण सर्च बार से कैसे अलग है?",
+  "Unlike generic chatbots, our AI Assistant is directly connected to your live business data. You can ask it questions in English or Hindi (like": "साधारण चैटबॉट्स के विपरीत, हमारा AI असिस्टेंट सीधे आपके लाइव बिज़नेस डेटा से जुड़ा है। आप इससे अंग्रेज़ी या हिंदी में सवाल पूछ सकते हैं (जैसे",
+
+  // About — CTA
+  "Ready to transform your business?": "अपने व्यापार को बदलने के लिए तैयार हैं?",
+  "Join modern MSMEs who are taking control of their growth.": "उन आधुनिक MSMEs से जुड़ें जो अपनी तरक्की खुद संभाल रहे हैं।",
+  "Launch ProfitPilot": "ProfitPilot शुरू करें",
+
+  // Footer
+  "AI-Driven Retail Management for MSMEs": "MSMEs के लिए AI-संचालित रिटेल मैनेजमेंट",
   // Errors & Notifications (Static)
   "Template downloaded! Fill it in and use Import to upload.": "टेंप्लेट डाउनलोड हो गया! इसे भरकर इंपोर्ट करें।",
   "Invalid file type. Please upload a .csv file.": "गलत फ़ाइल। कृपया .csv फ़ाइल अपलोड करें।",
@@ -313,9 +340,15 @@ function translateSingleText(originalText) {
         return originalText.replace(text, translationCache.get(text));
     }
 
-    let translated = text;
+    // Protect brand name — replace with placeholder before translating
+    const BRAND = 'ProfitPilot';
+    const PLACEHOLDER = '\x00PROFITPILOT\x00';
+    let hasBrand = text.includes(BRAND);
+    let workText = hasBrand ? text.replaceAll(BRAND, PLACEHOLDER) : text;
+
+    let translated = workText;
     
-    // 1. Exact match
+    // 1. Exact match (against brand-protected text)
     if (dictionary[text]) {
         translated = dictionary[text];
     } else {
@@ -323,6 +356,11 @@ function translateSingleText(originalText) {
         regexRules.forEach(rule => {
             translated = translated.replace(rule.p, rule.r);
         });
+    }
+
+    // Restore brand name
+    if (hasBrand) {
+        translated = translated.replaceAll(PLACEHOLDER, BRAND);
     }
 
     translationCache.set(text, translated);
