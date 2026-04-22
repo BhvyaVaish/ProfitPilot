@@ -197,6 +197,9 @@ class _PgConnection:
     def commit(self):
         self._conn.commit()
 
+    def rollback(self):
+        self._conn.rollback()
+
     def close(self):
         self._conn.close()
 
@@ -232,13 +235,17 @@ class _DummyCloseConnection:
     def commit(self):
         self._conn.commit()
     def close(self):
-        pass # Ignored. Handled by app.teardown_appcontext
+        pass  # Ignored — handled by app.teardown_appcontext
     def __enter__(self):
         return self
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             if exc_type:
-                self._conn._conn.rollback()
+                # Roll back on error — works for both PG (_PgConnection) and SQLite
+                if USE_POSTGRES:
+                    self._conn._conn.rollback()
+                else:
+                    self._conn.rollback()
             else:
                 self.commit()
         except Exception:
@@ -257,19 +264,18 @@ def _create_new_connection():
 def get_connection():
     """Return a DB connection. Caches per-request if inside Flask to prevent connection exhaustion."""
     if has_request_context():
-        if 'db_conn' in g:
-            # Validate the cached connection is still alive (PostgreSQL only)
-            if USE_POSTGRES:
-                try:
-                    g.db_conn._conn.cursor().execute("SELECT 1")
-                except Exception:
-                    try:
-                        g.db_conn._conn.close()
-                    except Exception:
-                        pass
-                    g.db_conn = _create_new_connection()
-        else:
+        if 'db_conn' not in g:
             g.db_conn = _create_new_connection()
+        elif USE_POSTGRES:
+            # Validate the cached connection is still alive
+            try:
+                g.db_conn._conn.cursor().execute("SELECT 1")
+            except Exception:
+                try:
+                    g.db_conn._conn.close()
+                except Exception:
+                    pass
+                g.db_conn = _create_new_connection()
         return _DummyCloseConnection(g.db_conn)
     return _create_new_connection()
 
