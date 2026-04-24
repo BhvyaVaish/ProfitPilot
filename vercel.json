@@ -13,6 +13,8 @@
     { "src": "/manifest\\.json", "dest": "frontend/manifest.json" },
     { "src": "/sw\\.js", "dest": "frontend/sw.js" },
     { "src": "/favicon\\.png", "dest": "frontend/favicon.png" },
+    { "src": "/googlec40537ffbfbe25f3\\.html", "dest": "frontend/googlec40537ffbfbe25f3.html" },
+    { "src": "/app/googlec40537ffbfbe25f3\\.html", "dest": "frontend/googlec40537ffbfbe25f3.html" },
     { "src": "/landing\\.html$", "dest": "frontend/landing.html" },
     { "src": "/landing$", "dest": "frontend/landing.html" },
     { "src": "/app\\.html$", "dest": "frontend/app.html" },
