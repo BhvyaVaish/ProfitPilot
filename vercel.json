@@ -13,8 +13,12 @@
     { "src": "/manifest\\.json", "dest": "frontend/manifest.json" },
     { "src": "/sw\\.js", "dest": "frontend/sw.js" },
     { "src": "/favicon\\.png", "dest": "frontend/favicon.png" },
+    { "src": "/landing\\.html$", "dest": "frontend/landing.html" },
+    { "src": "/landing$", "dest": "frontend/landing.html" },
+    { "src": "/app\\.html$", "dest": "frontend/app.html" },
+    { "src": "/app$", "dest": "frontend/app.html" },
     { "src": "/(index|dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)\\.html$", "dest": "frontend/$1.html" },
-    { "src": "/(index|dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)$", "dest": "frontend/$1.html" },
-    { "src": "^/$", "dest": "frontend/index.html" }
+    { "src": "/(dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)$", "dest": "frontend/$1.html" },
+    { "src": "^/$", "dest": "frontend/landing.html" }
   ]
 }
