@@ -75,6 +75,7 @@ function _attachAuthListener() {
       window._isLoggedIn = true;
       _authToken = await user.getIdToken();
       window._authToken = _authToken; // Expose globally
+      localStorage.setItem('profitpilot_loggedin', 'true'); // Flag for fast landing page redirect
 
       console.log('[AUTH] User logged in:', user.email, 'UID:', user.uid);
 
@@ -106,6 +107,7 @@ function _attachAuthListener() {
       window._isLoggedIn = false;
       _authToken = null;
       window._authToken = null; // Clear global reference
+      localStorage.removeItem('profitpilot_loggedin'); // Clear flag
       console.log('[AUTH] User logged out or not authenticated');
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', _showGuestUI);

@@ -15,6 +15,10 @@
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/landing.css">
   <script>
+    // Redirect logged-in users instantly to the app
+    if (localStorage.getItem('profitpilot_loggedin') === 'true') {
+      window.location.replace('app');
+    }
     // Mobile users go directly to the app
     if(/Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent)){
       window.location.replace('app');
