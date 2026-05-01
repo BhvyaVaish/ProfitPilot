@@ -10,10 +10,18 @@ function _initAuthPage() {
     if (user) {
       const status = await checkUserOnboarded();
       if (status.onboarded) {
-        window.location.href = '/';
+        window.location.href = '/app';
       } else {
         window.location.href = '/onboarding';
       }
+    } else {
+      // Re-enable buttons if user is not logged in
+      const signinBtn = document.getElementById('signin-btn');
+      const signupBtn = document.getElementById('signup-btn');
+      const googleBtn = document.getElementById('google-btn');
+      if (signinBtn) { signinBtn.disabled = false; signinBtn.textContent = 'Sign In'; }
+      if (signupBtn) { signupBtn.disabled = false; signupBtn.textContent = 'Create Account'; }
+      if (googleBtn) { googleBtn.disabled = false; googleBtn.style.opacity = '1'; googleBtn.style.cursor = 'pointer'; }
     }
   });
 }
