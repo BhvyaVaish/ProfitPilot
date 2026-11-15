@@ -6,6 +6,15 @@ function _initAuthPage() {
     console.warn('[Auth] Firebase not initialized — skipping auth state listener.');
     return;
   }
+  // Check for redirect result from Google sign-in fallback
+  if (typeof auth.getRedirectResult === 'function') {
+    auth.getRedirectResult().catch((err) => {
+      if (err && err.code) {
+        const { msg } = _friendlyError(err.code);
+        showError(msg);
+      }
+    });
+  }
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       const status = await checkUserOnboarded();

@@ -61,8 +61,17 @@ async function signInWithEmail(email, password) {
 }
 
 async function signInWithGoogle() {
-  const cred = await auth.signInWithPopup(googleProvider);
-  return cred.user;
+  try {
+    const cred = await auth.signInWithPopup(googleProvider);
+    return cred.user;
+  } catch (err) {
+    // If popup was blocked or failed due to cross-origin restrictions, fall back to redirect
+    if (err.code === 'auth/popup-blocked' || err.code === 'auth/internal-error' || err.code === 'auth/cancelled-popup-request') {
+      await auth.signInWithRedirect(googleProvider);
+      return null;
+    }
+    throw err;
+  }
 }
 
 async function signOutUser() {

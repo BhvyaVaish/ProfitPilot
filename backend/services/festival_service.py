@@ -2,17 +2,25 @@
 festival_service.py — Real-time festival data via Google Calendar API.
 
 Fetches upcoming Indian holidays for the next 15 days, then uses
-the AI mapper (Gemini) to predict demand and match against user inventory.
+the AI mapper to predict demand and match against user inventory.
+Includes in-memory TTL caching to prevent slow repeated external requests.
 """
 
+import time
 import requests
 from datetime import datetime, timedelta
 from urllib.parse import quote
 from config import (GOOGLE_API_KEY, GOOGLE_CALENDAR_KEY, GOOGLE_CALENDAR_ID, GOOGLE_CALENDAR_URL,
-                    FESTIVAL_LOOKAHEAD_DAYS, FESTIVAL_CATEGORY_MAP,
-                    DEMO_FESTIVALS_FALLBACK)
-from models import get_products_by_categories, get_all_products
+                    FESTIVAL_LOOKAHEAD_DAYS, DEMO_FESTIVALS_FALLBACK)
+from models import get_all_products
 from services.ai_mapper import get_or_predict_demand
+
+# In-memory cache for upcoming festivals to guarantee sub-millisecond responses
+_CACHE_UPCOMING = None
+_CACHE_TIMESTAMP = 0
+_CACHE_TTL = 900  # 15 minutes
+
+_CALENDAR_FAILED_UNTIL = 0
 
 
 def _fetch_google_calendar_holidays(days=None):
@@ -20,11 +28,17 @@ def _fetch_google_calendar_holidays(days=None):
     Fetch upcoming holidays from Google Calendar's public Indian holidays.
     Returns a list of {name, date} dicts.
     """
+    global _CALENDAR_FAILED_UNTIL
+
     if days is None:
         days = FESTIVAL_LOOKAHEAD_DAYS
 
-    if GOOGLE_CALENDAR_KEY == 'YOUR_KEY_HERE':
-        return None  # Signal to use fallback
+    if not GOOGLE_CALENDAR_KEY or GOOGLE_CALENDAR_KEY == 'YOUR_KEY_HERE':
+        return None
+
+    # Don't retry if recently failed with auth/quota errors
+    if time.time() < _CALENDAR_FAILED_UNTIL:
+        return None
 
     now = datetime.utcnow()
     time_min = now.strftime('%Y-%m-%dT00:00:00Z')
@@ -43,7 +57,7 @@ def _fetch_google_calendar_holidays(days=None):
     }
 
     try:
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=3)
         if response.status_code == 200:
             data = response.json()
             events = data.get('items', [])
@@ -59,36 +73,32 @@ def _fetch_google_calendar_holidays(days=None):
                     })
             return holidays
         else:
-            print(f"[Festival Service] Google Calendar API error: {response.status_code} {response.text[:200]}")
+            # Back off for 15 minutes on HTTP errors
+            _CALENDAR_FAILED_UNTIL = time.time() + 900
             return None
-    except Exception as e:
-        print(f"[Festival Service] Google Calendar fetch error: {e}")
+    except Exception:
+        _CALENDAR_FAILED_UNTIL = time.time() + 900
         return None
 
 
 def get_upcoming_festivals(days=None):
     """
     Get upcoming festivals with AI-powered demand predictions.
-    Uses Google Calendar API for real-time data, falls back to demo data.
-
-    Returns list of:
-    {
-        "name": "Diwali",
-        "date": "2026-10-20",
-        "days_away": 3,
-        "relevant_categories": ["sweets", "lights", ...],
-        "relevant_products": ["Kaju Katli Box", ...],
-        "demand_items": ["Kaju Katli", "LED Lights", ...],
-        "source": "google_calendar" | "fallback"
-    }
+    Uses cached result if available to guarantee fast page loads.
     """
+    global _CACHE_UPCOMING, _CACHE_TIMESTAMP
+
     if days is None:
         days = FESTIVAL_LOOKAHEAD_DAYS
+
+    now_ts = time.time()
+    if _CACHE_UPCOMING is not None and (now_ts - _CACHE_TIMESTAMP) < _CACHE_TTL:
+        return _CACHE_UPCOMING
 
     today = datetime.today()
     upcoming = []
 
-    # ── Try Google Calendar API first ────────────────────────────────────
+    # 1. Try Google Calendar API first
     holidays = _fetch_google_calendar_holidays(days)
 
     if holidays is not None and len(holidays) > 0:
@@ -96,28 +106,23 @@ def get_upcoming_festivals(days=None):
             try:
                 festival_date = datetime.strptime(h['date'], '%Y-%m-%d')
                 diff = (festival_date - today).days
-                # Include today and future dates within range
                 if -1 <= diff <= days:
-                    diff = max(0, diff)  # Clamp to 0 for today
-
-                    # Get AI demand prediction (cached or fresh)
+                    diff = max(0, diff)
                     demand = get_or_predict_demand(h['name'])
-
                     upcoming.append({
                         "name": h['name'],
                         "date": h['date'],
                         "days_away": diff,
-                        "relevant_categories": demand['categories'],
-                        "relevant_products": [],  # Will be filled by inventory matching
-                        "demand_items": demand['items'],
+                        "relevant_categories": demand.get('categories', []),
+                        "relevant_products": [],
+                        "demand_items": demand.get('items', []),
                         "source": "google_calendar",
-                        "prediction_source": demand['source'],
+                        "prediction_source": demand.get('source', 'default'),
                     })
-            except (KeyError, ValueError) as e:
-                print(f"[Festival Service] Parse error for {h}: {e}")
+            except Exception:
                 continue
     else:
-        # ── Fallback to demo data ────────────────────────────────────────
+        # 2. Fast Fallback to Indian holidays calendar data
         for f in DEMO_FESTIVALS_FALLBACK:
             try:
                 festival_date = datetime.strptime(f['date'], '%Y-%m-%d')
@@ -128,15 +133,17 @@ def get_upcoming_festivals(days=None):
                         "name": f['name'],
                         "date": f['date'],
                         "days_away": diff,
-                        "relevant_categories": demand['categories'],
+                        "relevant_categories": demand.get('categories', []),
                         "relevant_products": [],
-                        "demand_items": demand['items'],
+                        "demand_items": demand.get('items', []),
                         "source": "fallback",
-                        "prediction_source": demand['source'],
+                        "prediction_source": demand.get('source', 'default'),
                     })
-            except (KeyError, ValueError):
+            except Exception:
                 continue
 
+    _CACHE_UPCOMING = upcoming
+    _CACHE_TIMESTAMP = now_ts
     return upcoming
 
 
@@ -144,33 +151,10 @@ def match_festivals_to_inventory(user_id='demo'):
     """
     Smart inventory matching: For each upcoming festival, check the user's
     inventory and generate actionable suggestions.
-
-    Returns:
-    {
-        "festivals": [...],
-        "suggestions": [
-            {
-                "type": "restock",  # or "opportunity"
-                "festival": "Diwali",
-                "days_away": 3,
-                "product": "Kaju Katli Box (500g)",
-                "current_stock": 5,
-                "message": "Diwali in 3 days! Kaju Katli demand will spike. Current stock: 5. Consider adding 20+ units."
-            },
-            {
-                "type": "opportunity",
-                "festival": "Diwali",
-                "days_away": 3,
-                "item": "Rangoli Colours",
-                "message": "Diwali in 3 days! Rangoli Colours demand is expected to rise. Consider adding this to your inventory."
-            }
-        ]
-    }
     """
     festivals = get_upcoming_festivals()
     products = get_all_products(user_id)
 
-    # Build lookup maps
     product_by_name_lower = {p['name'].lower(): p for p in products}
     product_by_category = {}
     for p in products:
@@ -182,20 +166,19 @@ def match_festivals_to_inventory(user_id='demo'):
     suggestions = []
 
     for festival in festivals:
-        fcat = festival['relevant_categories']
+        fcat = festival.get('relevant_categories', [])
         demand_items = festival.get('demand_items', [])
         fname = festival['name']
         fdays = festival['days_away']
 
-        # ── 1. Check which demand categories match user inventory ────────
+        # 1. Match categories
         matched_products = []
         for cat in fcat:
             cat_lower = cat.lower()
             if cat_lower in product_by_category:
                 for p in product_by_category[cat_lower]:
                     matched_products.append(p)
-                    # If stock is low, suggest restocking
-                    if p['stock'] < 20:
+                    if p.get('stock', 0) < 20:
                         suggestions.append({
                             "type": "restock",
                             "festival": fname,
@@ -207,16 +190,13 @@ def match_festivals_to_inventory(user_id='demo'):
                                        f"Current stock: {p['stock']}. Consider adding 20+ units."
                         })
 
-        # Fill in relevant_products on the festival object
         festival['relevant_products'] = list(set(p['name'] for p in matched_products))
 
-        # ── 2. Check for "opportunity" items not in inventory ─────────────
+        # 2. Check opportunity items
         for item in demand_items:
             item_lower = item.lower()
-            # Check if user has any product with similar name
             has_it = any(item_lower in pname for pname in product_by_name_lower.keys())
             if not has_it:
-                # Check if any category match exists (fuzzy)
                 cat_match = any(cat.lower() in product_by_category for cat in fcat)
                 suggestions.append({
                     "type": "opportunity",
@@ -228,11 +208,10 @@ def match_festivals_to_inventory(user_id='demo'):
                                f"Consider adding this to your inventory."
                 })
 
-    # Sort suggestions: closest festival first, then restock before opportunity
     type_order = {"restock": 0, "opportunity": 1}
     suggestions.sort(key=lambda s: (s['days_away'], type_order.get(s['type'], 2)))
 
     return {
         "festivals": festivals,
-        "suggestions": suggestions[:25],  # Cap at 25 most relevant
+        "suggestions": suggestions[:25],
     }
