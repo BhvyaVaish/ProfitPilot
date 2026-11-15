@@ -4,8 +4,6 @@ app.py — ProfitPilot Flask application.
 Works in two modes:
   • Local dev  : python app.py  (runs on port 5000, hot-reload)
   • Vercel     : Module is imported; the `app` object is used as the handler.
-                 The Vercel runtime calls init() via @app.before_first_request
-                 (or the explicit startup block for newer Flask versions).
 """
 
 import sys
@@ -15,13 +13,12 @@ import os
 # from the repo root via api/index.py
 sys.path.insert(0, os.path.dirname(__file__))
 
-from flask import Flask, g, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from database import init_db, USE_POSTGRES
 from auth_middleware import init_firebase_admin
 from routes.billing import billing_bp
 from routes.inventory import inventory_bp
@@ -62,7 +59,7 @@ app.register_blueprint(tax_bp)
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "ok", "service": "ProfitPilot Backend"}), 200
+    return jsonify({"status": "ok", "service": "ProfitPilot Backend (Firestore)"}), 200
 
 
 # ── Global error handlers ───────────────────────────────────────────────────
@@ -127,37 +124,18 @@ def about_page():
     return app.send_static_file('about.html')
 
 
-@app.teardown_appcontext
-def close_db_connection(exception):
-    db_conn = g.pop('db_conn', None)
-    if db_conn is not None:
-        try:
-            if exception:
-                # Rollback aborted transactions so the connection closes cleanly
-                if hasattr(db_conn, '_conn'):
-                    db_conn._conn.rollback()
-                else:
-                    db_conn.rollback()
-            else:
-                db_conn.commit()
-        except Exception:
-            pass
-        finally:
-            db_conn.close()
-
 # ── One-time initialisation ─────────────────────────────────────────────────
 
 def _startup():
     """Run once when the app first starts (both locally and on Vercel)."""
     init_firebase_admin()
 
-    # Auto-create tables + seed demo data if they don't already exist.
-    # On Supabase/PostgreSQL this is safe to call every cold-start because
-    # all CREATE TABLE statements use IF NOT EXISTS.
+    # Seed demo user data in Firestore if not already seeded
     try:
-        init_db()
+        from firestore_db import seed_demo_user
+        seed_demo_user()
     except Exception as e:
-        print(f"[WARN] DB init error (may be fine if already seeded): {e}")
+        print(f"[WARN] Could not seed demo user: {e}")
 
     # Pre-warm alerts for the demo user
     try:

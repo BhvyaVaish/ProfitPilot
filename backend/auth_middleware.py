@@ -20,11 +20,15 @@ def init_firebase_admin():
         _firebase_app = _firebase_app or firebase_admin.get_app()
         return _firebase_app
 
-    sa_b64 = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
-    if sa_b64:
+    sa_env = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+    if sa_env:
         try:
-            sa_json = base64.b64decode(sa_b64).decode("utf-8")
-            sa_dict = json.loads(sa_json)
+            # Handle both raw JSON and base64-encoded JSON
+            if sa_env.startswith("{"):
+                sa_dict = json.loads(sa_env)
+            else:
+                sa_json = base64.b64decode(sa_env).decode("utf-8")
+                sa_dict = json.loads(sa_json)
             cred = credentials.Certificate(sa_dict)
             _firebase_app = firebase_admin.initialize_app(cred)
             print("[OK] Firebase Admin SDK initialized from environment variable.")

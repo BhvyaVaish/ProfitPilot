@@ -1,90 +1,62 @@
-from database import get_connection
+"""
+models.py — Firestore-backed CRUD wrappers for ProfitPilot.
+
+Exposes the same function signatures as the old SQL-based models.py
+so that existing callers (services, routes) need no changes.
+"""
+
+import firestore_db
+
+
+# ── Products ───────────────────────────────────────────────────────────
 
 def get_all_products(user_id='demo'):
-    conn = get_connection()
-    rows = conn.execute("SELECT * FROM products WHERE user_id = ? ORDER BY name ASC", (user_id,)).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    return firestore_db.get_all_products(user_id)
+
 
 def get_products_by_categories(categories, user_id='demo'):
-    if not categories:
-        return []
-    conn = get_connection()
-    placeholders = ','.join(['?' for _ in categories])
-    params = [user_id] + [c.lower() for c in categories]
-    rows = conn.execute(f"SELECT * FROM products WHERE user_id = ? AND LOWER(category) IN ({placeholders})", params).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    return firestore_db.get_products_by_categories(user_id, categories)
+
 
 def get_product_by_name(name, user_id='demo'):
-    conn = get_connection()
-    row = conn.execute("SELECT * FROM products WHERE user_id = ? AND LOWER(name) = LOWER(?)", (user_id, name)).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    return firestore_db.get_product_by_name(user_id, name)
+
 
 def insert_product(name, category, price, stock, user_id='demo', cost_price=None):
-    conn = get_connection()
-    c = conn.cursor()
-    if cost_price is not None:
-        c.execute("INSERT INTO products (user_id, name, category, price, stock, cost_price) VALUES (?, ?, ?, ?, ?, ?)", (user_id, name, category, price, stock, cost_price))
-    else:
-        c.execute("INSERT INTO products (user_id, name, category, price, stock) VALUES (?, ?, ?, ?, ?)", (user_id, name, category, price, stock))
-    conn.commit()
-    product_id = c.lastrowid
-    conn.close()
-    return product_id
+    """Insert a product and return its new Firestore document ID (string)."""
+    return firestore_db.insert_product(
+        user_id=user_id,
+        name=name,
+        category=category,
+        price=price,
+        stock=stock,
+        cost_price=cost_price,
+    )
 
-def update_product(product_id, user_id='demo', name=None, price=None, stock=None, category=None):
-    conn = get_connection()
-    updates = []
-    params = []
-    if name is not None:
-        updates.append("name = ?")
-        params.append(name)
-    if price is not None:
-        updates.append("price = ?")
-        params.append(price)
-    if stock is not None:
-        updates.append("stock = ?")
-        params.append(stock)
-    if category is not None:
-        updates.append("category = ?")
-        params.append(category)
-    if not updates:
-        conn.close()
-        return
-    params.extend([product_id, user_id])
-    conn.execute(f"UPDATE products SET {', '.join(updates)} WHERE id = ? AND user_id = ?", params)
-    conn.commit()
-    conn.close()
+
+def update_product(product_id, user_id='demo', **kwargs):
+    firestore_db.update_product(user_id, product_id, **kwargs)
+
 
 def delete_product(product_id, user_id='demo'):
-    conn = get_connection()
-    conn.execute("DELETE FROM products WHERE id = ? AND user_id = ?", (product_id, user_id))
-    conn.commit()
-    conn.close()
+    firestore_db.delete_product(user_id, product_id)
+
+
+# ── Alerts ─────────────────────────────────────────────────────────────
 
 def get_all_alerts(user_id='demo'):
-    conn = get_connection()
-    rows = conn.execute("SELECT * FROM alerts WHERE user_id = ? ORDER BY created_at DESC LIMIT 10", (user_id,)).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    return firestore_db.get_alerts(user_id)
+
 
 def insert_alert(level, message, user_id='demo'):
-    conn = get_connection()
-    conn.execute("INSERT INTO alerts (user_id, level, message) VALUES (?, ?, ?)", (user_id, level, message))
-    conn.commit()
-    conn.close()
+    firestore_db.insert_alert(user_id, level, message)
+
 
 def clear_auto_alerts(user_id='demo'):
-    conn = get_connection()
-    conn.execute("DELETE FROM alerts WHERE user_id = ?", (user_id,))
-    conn.commit()
-    conn.close()
+    firestore_db.clear_alerts(user_id)
+
+
+# ── User profile ───────────────────────────────────────────────────────
 
 def get_user_profile(user_id):
-    """Get user profile for personalized suggestions."""
-    conn = get_connection()
-    row = conn.execute("SELECT * FROM user_profiles WHERE firebase_uid = ?", (user_id,)).fetchone()
-    conn.close()
-    return dict(row) if row else None
+    return firestore_db.get_user_profile(user_id)

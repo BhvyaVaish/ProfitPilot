@@ -1,40 +1,19 @@
-from database import get_connection
-from models import get_all_products
-from config import RESTOCK_BUFFER
+import firestore_db
+from datetime import datetime, timezone
 from services.festival_service import get_upcoming_festivals
 
+
 def get_bulk_sales_metrics(user_id='demo'):
-    conn = get_connection()
-    rows = conn.execute("""
-        SELECT p.id as product_id,
-               COALESCE(SUM(CASE WHEN s.sold_at >= date('now', '-7 days') THEN s.quantity ELSE 0 END), 0) as last_7_days_sales,
-               COALESCE(SUM(CASE WHEN s.sold_at >= date('now', '-3 days') THEN s.quantity ELSE 0 END), 0) as last_3_days_sales,
-               COALESCE(SUM(CASE WHEN s.sold_at >= date('now', '-6 days') AND s.sold_at < date('now', '-3 days') THEN s.quantity ELSE 0 END), 0) as prev_3_days_sales
-        FROM products p
-        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-7 days')
-        WHERE p.user_id = ?
-        GROUP BY p.id
-    """, (user_id,)).fetchall()
-    conn.close()
-    
-    metrics = {}
-    for r in rows:
-        pid = r['product_id']
-        metrics[pid] = {
-            'last_7_days_sales': r['last_7_days_sales'],
-            'avg_last_7': float(r['last_7_days_sales']) / 7.0,
-            'avg_last_3': float(r['last_3_days_sales']) / 3.0,
-            'avg_prev_3': float(r['prev_3_days_sales']) / 3.0
-        }
-    return metrics
+    return firestore_db.get_bulk_sales_metrics(user_id)
 
 
 def get_restock_suggestions(user_id='demo'):
-    products = get_all_products(user_id)
+    products = firestore_db.get_all_products(user_id)
+    metrics = firestore_db.get_bulk_sales_metrics(user_id)
     festivals = get_upcoming_festivals()
     festival_keywords = [cat.lower() for f in festivals if f['days_away'] <= 7 for cat in f['relevant_categories']]
+
     suggestions = []
-    metrics = get_bulk_sales_metrics(user_id)
 
     for p in products:
         pid = p['id']
@@ -76,46 +55,64 @@ def get_restock_suggestions(user_id='demo'):
 
     return sorted(suggestions, key=lambda x: x['suggested_restock'], reverse=True)[:10]
 
+
 def get_dead_stock(user_id='demo'):
     festivals = get_upcoming_festivals()
     festival_keywords = [cat.lower() for f in festivals if f['days_away'] <= 7 for cat in f['relevant_categories']]
 
-    conn = get_connection()
-    dead = conn.execute("""
-        SELECT p.id, p.name, p.stock, p.category,
-          COALESCE(strftime('%d-%m-%Y', MAX(s.sold_at)), 'Never') as last_sold_fmt,
-          MAX(s.sold_at) as last_sold_raw,
-          CASE
-            WHEN MAX(s.sold_at) IS NULL THEN 'Never'
-            ELSE cast(julianday('now') - julianday(MAX(s.sold_at)) as integer) || ' days ago'
-          END as days_since
-        FROM products p
-        LEFT JOIN sales s ON s.product_id = p.id
-        WHERE p.user_id = ?
-        GROUP BY p.id
-        HAVING p.stock > 0
-        AND (MAX(s.sold_at) IS NULL OR MAX(s.sold_at) < date('now', '-7 days'))
-    """, (user_id,)).fetchall()
-    conn.close()
+    products = firestore_db.get_all_products(user_id)
+    metrics = firestore_db.get_bulk_sales_metrics(user_id)
 
+    now = datetime.now(timezone.utc)
     filtered_dead = []
-    for d in dead:
-        c = d['category'].lower()
-        n = d['name'].lower()
-        if c not in festival_keywords and not any(k in n for k in festival_keywords):
-            item = dict(d)
-            item['last_sold'] = item.pop('last_sold_fmt')
-            if 'last_sold_raw' in item:
-                del item['last_sold_raw']
-            filtered_dead.append(item)
+
+    for p in products:
+        pid = p['id']
+        stock = p.get('stock', 0)
+        if stock <= 0:
+            continue
+
+        p_metrics = metrics.get(pid, {'last_7_days_sales': 0})
+        if p_metrics['last_7_days_sales'] != 0:
+            continue
+
+        category = p.get('category', '').lower()
+        name = p.get('name', '').lower()
+        if category in festival_keywords or any(k in name for k in festival_keywords):
+            continue
+
+        last_sold_at = p.get('last_sold_at')
+        if last_sold_at is None or last_sold_at == 'Never':
+            last_sold = 'Never'
+            days_since = 'Never'
+        else:
+            try:
+                # last_sold_at is already formatted as '%d-%m-%Y %H:%M' by firestore_db._doc_to_product
+                last_sold_dt = datetime.strptime(last_sold_at, '%d-%m-%Y %H:%M').replace(tzinfo=timezone.utc)
+                diff = (now - last_sold_dt).days
+                last_sold = last_sold_at
+                days_since = f"{diff} days ago"
+            except (ValueError, TypeError):
+                last_sold = 'Never'
+                days_since = 'Never'
+
+        filtered_dead.append({
+            'id': pid,
+            'name': p['name'],
+            'stock': stock,
+            'category': p.get('category', ''),
+            'last_sold': last_sold,
+            'days_since': days_since,
+        })
 
     return filtered_dead
 
+
 def get_high_potential_items(user_id='demo'):
-    products = get_all_products(user_id)
+    products = firestore_db.get_all_products(user_id)
     festivals = get_upcoming_festivals()
     festival_categories = [cat for f in festivals for cat in f['relevant_categories']]
-    metrics = get_bulk_sales_metrics(user_id)
+    metrics = firestore_db.get_bulk_sales_metrics(user_id)
 
     high_potential = []
     for p in products:
@@ -132,17 +129,18 @@ def get_high_potential_items(user_id='demo'):
             reason = f"Demand likely due to {', '.join(matching)}"
 
         if reason:
-            high_potential.append({ "name": p['name'], "category": p['category'], "reason": reason })
+            high_potential.append({"name": p['name'], "category": p['category'], "reason": reason})
 
     return high_potential
 
+
 def get_prioritized_alerts(user_id='demo'):
-    products = get_all_products(user_id)
+    products = firestore_db.get_all_products(user_id)
     festivals = get_upcoming_festivals()
     festival_keywords = [cat.lower() for f in festivals if f['days_away'] <= 7 for cat in f['relevant_categories']]
 
     alerts = []
-    metrics = get_bulk_sales_metrics(user_id)
+    metrics = firestore_db.get_bulk_sales_metrics(user_id)
 
     for p in products:
         pid = p['id']
@@ -225,6 +223,7 @@ def get_prioritized_alerts(user_id='demo'):
 
     return final_alerts
 
+
 def get_home_festival_insights(user_id='demo'):
     from services.festival_service import match_festivals_to_inventory
     result = match_festivals_to_inventory(user_id)
@@ -264,57 +263,52 @@ def get_home_festival_insights(user_id='demo'):
         "smart_suggestions": suggestions[:10],
     }
 
-def get_home_mini_insights(user_id='demo'):
-    conn = get_connection()
-    products = get_all_products(user_id)
-    
-    # 1. Top Selling (Last 30 Days)
-    top_row = conn.execute("""
-        SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty 
-        FROM products p 
-        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-30 days')
-        WHERE p.user_id = ? 
-        GROUP BY p.id 
-        HAVING COALESCE(SUM(s.quantity), 0) > 0
-        ORDER BY total_qty DESC 
-        LIMIT 1
-    """, (user_id,)).fetchone()
-    top_selling = top_row['name'] if top_row else "No recent sales"
 
-    # 2. Least Selling (Last 30 Days, prioritization on high dead stock)
-    least_row = conn.execute("""
-        SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty, p.stock
-        FROM products p 
-        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-30 days')
-        WHERE p.user_id = ? AND p.stock > 0
-        GROUP BY p.id 
-        ORDER BY total_qty ASC, p.stock DESC 
-        LIMIT 1
-    """, (user_id,)).fetchone()
-    least_selling = least_row['name'] if least_row else "N/A"
-    conn.close()
+def get_home_mini_insights(user_id='demo'):
+    products = firestore_db.get_all_products(user_id)
+
+    # 1. Top Selling (Last 30 Days)
+    top_products = firestore_db.get_top_products_by_qty(user_id, limit=1, days=30)
+    top_selling = top_products[0]['name'] if top_products else "No recent sales"
+
+    # 2. Least Selling (Last 30 Days, prioritize high dead stock)
+    metrics = firestore_db.get_bulk_sales_metrics(user_id)
+    least_candidate = None
+    least_qty = float('inf')
+    least_stock = -1
+
+    for p in products:
+        if p['stock'] <= 0:
+            continue
+        pid = p['id']
+        p_metrics = metrics.get(pid, {'last_7_days_sales': 0, 'avg_last_7': 0})
+        total_qty = p_metrics['last_7_days_sales']
+        if total_qty < least_qty or (total_qty == least_qty and p['stock'] > least_stock):
+            least_candidate = p
+            least_qty = total_qty
+            least_stock = p['stock']
+
+    least_selling = least_candidate['name'] if least_candidate else "N/A"
 
     # 3. High Potential (Match current inventory with upcoming festivals)
     festivals = get_upcoming_festivals()
-    # Check next 15 days
     upcoming_festivals = [f for f in festivals if f['days_away'] <= 15]
     festival_keywords = [cat.lower() for f in upcoming_festivals for cat in f['relevant_categories']]
-    
+
     high_potential = "None identified"
     best_candidate = None
     max_stock = -1
-    
+
     for p in products:
         if p['stock'] > 0 and p['category'].lower() in festival_keywords:
             if p['stock'] > max_stock:
                 best_candidate = p
                 max_stock = p['stock']
-                
+
     if best_candidate:
         high_potential = f"{best_candidate['name']} (Festival demand expected)"
     else:
         # Fallback to recent sales momentum if no festivals apply
-        metrics = get_bulk_sales_metrics(user_id)
         for p in products:
             if p['stock'] > 0:
                 pid = p['id']
@@ -325,41 +319,36 @@ def get_home_mini_insights(user_id='demo'):
                     high_potential = f"{p['name']} (Sales trending up)"
                     break
 
-    return { "top_selling": top_selling, "least_selling": least_selling, "high_potential": high_potential }
+    return {"top_selling": top_selling, "least_selling": least_selling, "high_potential": high_potential}
+
 
 def get_home_quick_summary(user_id='demo'):
-    conn = get_connection()
-    today_sales = conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', 'start of day')", (user_id,)).fetchone()['s']
+    rev = firestore_db.get_revenue_summary(user_id)
+    today_sales = rev['today']
+    week_sales = rev['week']
+    prev_week_sales = rev['prev_week']
 
-    week_sales = conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['s']
-    prev_week_sales = conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-14 days') AND sold_at < date('now', '-7 days')", (user_id,)).fetchone()['s']
-
-    week_change = 0
+    week_change = 0.0
     if prev_week_sales > 0:
         week_change = round(((week_sales - prev_week_sales) / prev_week_sales) * 100, 1)
 
-    query = """
-        SELECT
-            p.stock,
-            COALESCE(SUM(s.quantity), 0) as past_7d_sales
-        FROM products p
-        LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-7 days')
-        WHERE p.user_id = ?
-        GROUP BY p.id
-    """
-    rows = conn.execute(query, (user_id,)).fetchall()
-    conn.close()
+    products = firestore_db.get_all_products(user_id)
+    metrics = firestore_db.get_bulk_sales_metrics(user_id)
 
-    total_products = len(rows)
+    total_products = len(products)
     low_stock_count = 0
     out_of_stock_count = 0
 
-    for r in rows:
-        avg_daily_sales = float(r['past_7d_sales']) / 7.0
+    for p in products:
+        pid = p['id']
+        stock = p.get('stock', 0)
+        p_metrics = metrics.get(pid, {'avg_last_7': 0})
+        avg_daily_sales = p_metrics['avg_last_7']
         threshold = max(5, avg_daily_sales * 2)
-        if r['stock'] == 0:
+
+        if stock == 0:
             out_of_stock_count += 1
-        elif r['stock'] < threshold:
+        elif stock < threshold:
             low_stock_count += 1
 
     return {
@@ -371,16 +360,16 @@ def get_home_quick_summary(user_id='demo'):
         "total_products": total_products
     }
 
+
 def get_business_health_score(user_id='demo'):
     """Composite 0-100 business health score."""
-    products = get_all_products(user_id)
+    products = firestore_db.get_all_products(user_id)
     if not products:
         return {"score": 0, "grade": "N/A", "factors": []}
 
-    conn = get_connection()
     factors = []
 
-    # Factor 1: Stock Health (0-30 pts)
+    # Factor 1: Stock Availability (0-30 pts)
     total = len(products)
     out_of_stock = sum(1 for p in products if p['stock'] == 0)
     stock_ratio = 1 - (out_of_stock / total) if total > 0 else 1
@@ -388,8 +377,9 @@ def get_business_health_score(user_id='demo'):
     factors.append({"name": "Stock Availability", "score": stock_score, "max": 30})
 
     # Factor 2: Sales Momentum (0-25 pts)
-    week_sales = float(conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['s'])
-    prev_week = float(conn.execute("SELECT COALESCE(SUM(total_price), 0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-14 days') AND sold_at < date('now', '-7 days')", (user_id,)).fetchone()['s'])
+    rev = firestore_db.get_revenue_summary(user_id)
+    week_sales = rev['week']
+    prev_week = rev['prev_week']
     if prev_week > 0:
         momentum = min(1.0, max(0, (week_sales / prev_week)))
     else:
@@ -397,7 +387,7 @@ def get_business_health_score(user_id='demo'):
     momentum_score = round(momentum * 25)
     factors.append({"name": "Sales Momentum", "score": momentum_score, "max": 25})
 
-    # Factor 3: Dead Stock Ratio (0-20 pts)
+    # Factor 3: Dead Stock Ratio / Capital Efficiency (0-20 pts)
     dead = get_dead_stock(user_id)
     dead_ratio = 1 - (len(dead) / total) if total > 0 else 1
     dead_score = round(dead_ratio * 20)
@@ -410,15 +400,10 @@ def get_business_health_score(user_id='demo'):
     factors.append({"name": "Product Diversity", "score": diversity_score, "max": 15})
 
     # Factor 5: Revenue Consistency (0-10 pts)
-    daily_sales = conn.execute("""
-        SELECT COUNT(DISTINCT date(sold_at)) as active_days
-        FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')
-    """, (user_id,)).fetchone()['active_days']
-    consistency = min(1.0, daily_sales / 7)
+    active_days = firestore_db.get_active_sales_days(user_id, days=7)
+    consistency = min(1.0, active_days / 7)
     consistency_score = round(consistency * 10)
     factors.append({"name": "Revenue Consistency", "score": consistency_score, "max": 10})
-
-    conn.close()
 
     total_score = sum(f['score'] for f in factors)
 

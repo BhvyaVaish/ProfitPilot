@@ -3,12 +3,13 @@ ai_mapper.py — Gemini AI demand prediction for festivals.
 
 Uses Google GenAI (Gemini) to predict the top 15 high-demand
 product categories and items for any given festival.
-Results are cached in the `festival_demands` database table.
+Results are cached in Firestore via firestore_db.py.
 """
 
 import json
 from google import genai
 from config import GOOGLE_API_KEY, FESTIVAL_CATEGORY_MAP
+import firestore_db
 
 # ── Configure Gemini ─────────────────────────────────────────────────────────
 _CLIENT = None
@@ -23,7 +24,6 @@ def _ensure_configured():
         _CLIENT = genai.Client(api_key=key)
 
 
-# ── Hardcoded fallback (fast path — no API call needed) ──────────────────────
 # ── Hardcoded fallback (fast path — no API call needed) ──────────────────────
 def _get_from_hardcoded_map(festival_name: str) -> dict | None:
     """Check if this festival has a hardcoded mapping in config.py."""
@@ -110,7 +110,7 @@ Return exactly 15 items and their relevant categories (can be fewer unique categ
                     contents=prompt,
                 )
             except Exception:
-                # Fallback to latest alias if standard name fails (some keys/regions prefer this)
+                # Fallback to latest alias if standard name fails
                 model_name = 'gemini-flash-latest'
                 response = _CLIENT.models.generate_content(
                     model=model_name,
@@ -142,58 +142,33 @@ Return exactly 15 items and their relevant categories (can be fewer unique categ
     }
 
 
-# ── Database cache layer ─────────────────────────────────────────────────────
+# ── Firestore cache layer ─────────────────────────────────────────────────────
 def get_cached_demand(festival_name: str) -> dict | None:
-    """Check if we already have AI predictions cached for this festival."""
-    from database import get_connection
-    conn = get_connection()
+    """Check if we already have predictions cached in Firestore."""
     try:
-        row = conn.execute(
-            "SELECT categories_json, items_json, source FROM festival_demands WHERE festival_name = ?",
-            (festival_name,)
-        ).fetchone()
-        if row:
+        cached = firestore_db.get_festival_demand(festival_name)
+        if cached:
             return {
-                "categories": json.loads(row["categories_json"]),
-                "items": json.loads(row["items_json"]),
-                "source": row["source"]
+                "categories": cached.get("categories", []),
+                "items": cached.get("items", []),
+                "source": cached.get("source", "cache")
             }
-        return None
-    finally:
-        conn.close()
+    except Exception as e:
+        print(f"[AI Mapper] Cache read error: {e}")
+    return None
 
 
 def cache_demand(festival_name: str, demand: dict):
-    """Save AI predictions to DB for reuse. Resilient to database locked errors."""
-    import time
-    from database import get_connection
-    for attempt in range(3):
-        conn = get_connection()
-        try:
-            conn.execute(
-                "INSERT INTO festival_demands (festival_name, categories_json, items_json, source) "
-                "VALUES (?, ?, ?, ?) "
-                "ON CONFLICT (festival_name) DO UPDATE SET "
-                "categories_json = ?, items_json = ?, source = ?",
-                (
-                    festival_name,
-                    json.dumps(demand["categories"]),
-                    json.dumps(demand["items"]),
-                    demand["source"],
-                    json.dumps(demand["categories"]),
-                    json.dumps(demand["items"]),
-                    demand["source"],
-                )
-            )
-            conn.commit()
-            return  # Success
-        except Exception as e:
-            if "locked" in str(e).lower() and attempt < 2:
-                time.sleep(0.5)
-                continue
-            print(f"[AI Mapper] Cache write error: {e}")
-        finally:
-            conn.close()
+    """Save AI predictions to Firestore for reuse."""
+    try:
+        firestore_db.save_festival_demand(
+            festival_name=festival_name,
+            categories=demand.get("categories", []),
+            items=demand.get("items", []),
+            source=demand.get("source", "ai")
+        )
+    except Exception as e:
+        print(f"[AI Mapper] Cache write error: {e}")
 
 
 def get_or_predict_demand(festival_name: str) -> dict:
@@ -209,7 +184,7 @@ def get_or_predict_demand(festival_name: str) -> dict:
     demand = predict_festival_demand(festival_name)
 
     # Cache it (skip caching fallback results)
-    if demand["source"] in ("ai", "hardcoded"):
+    if demand.get("source") in ("ai", "hardcoded"):
         cache_demand(festival_name, demand)
 
     return demand

@@ -1,5 +1,11 @@
+"""
+analytics.py — Analytics & dashboard routes.
+
+Fully migrated to Firestore. No SQL.
+"""
+
 from flask import Blueprint, request, jsonify, g
-from database import get_connection
+import firestore_db
 from services.ai_engine import (
     get_restock_suggestions,
     get_dead_stock,
@@ -12,6 +18,7 @@ from auth_middleware import optional_auth
 
 analytics_bp = Blueprint('analytics', __name__)
 
+
 @analytics_bp.route('/api/dashboard/full', methods=['GET'])
 @optional_auth
 def get_dashboard_full():
@@ -22,24 +29,7 @@ def get_dashboard_full():
             days = 7
 
         # 1. Sales Graph (Revenue Velocity)
-        conn = get_connection()
-        graph_data = conn.execute(f"""
-            SELECT strftime('%d-%m-%Y', s.sold_at) as label,
-                   date(s.sold_at) as raw_date,
-                   SUM(s.total_price) as revenue,
-                   SUM(s.quantity) as units
-            FROM sales s
-            JOIN products p ON p.id = s.product_id
-            WHERE p.user_id = ? AND s.sold_at >= date('now', '-{days} days')
-            GROUP BY date(s.sold_at), strftime('%d-%m-%Y', s.sold_at)
-            ORDER BY date(s.sold_at) ASC
-        """, (user_id,)).fetchall()
-
-        sales_graph = {
-            "labels": [d['label'] for d in graph_data],
-            "revenue": [float(d['revenue'] or 0) for d in graph_data],
-            "units": [int(d['units'] or 0) for d in graph_data]
-        }
+        sales_graph = firestore_db.get_sales_graph(user_id, days=days)
 
         # 2. Top Products (Catalog Performance)
         catalog_performance = get_top_products(5, user_id)
@@ -59,23 +49,12 @@ def get_dashboard_full():
         # 7. Festival Widget
         festival_widget = get_home_festival_insights(user_id)
 
-        # 8. Category-wise Sales Breakdown
-        cat_data = conn.execute("""
-            SELECT p.category, SUM(s.total_price) as total_revenue
-            FROM sales s
-            JOIN products p ON p.id = s.product_id
-            WHERE p.user_id = ? AND s.sold_at >= date('now', '-30 days')
-            GROUP BY p.category
-            ORDER BY total_revenue DESC
-        """, (user_id,)).fetchall()
-        category_breakdown = [{"category": c['category'], "revenue": round(float(c['total_revenue'] or 0), 2)} for c in cat_data]
+        # 8. Category-wise Sales Breakdown (last 30 days)
+        category_breakdown = firestore_db.get_category_revenue(user_id, days=30)
 
         # 9. Summary stats
-        total_rev = float(conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['t'])
-        prev_rev = float(conn.execute("SELECT COALESCE(SUM(s.total_price), 0) as t FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-14 days') AND s.sold_at < date('now', '-7 days')", (user_id,)).fetchone()['t'])
-        total_orders = conn.execute("SELECT COUNT(DISTINCT id) as c FROM bills WHERE user_id = ? AND created_at >= date('now', '-7 days')", (user_id,)).fetchone()['c']
-
-        conn.close()
+        rev_summary = firestore_db.get_revenue_summary(user_id)
+        total_orders = firestore_db.count_bills(user_id, days=7)
 
         return jsonify({
             "sales_graph": sales_graph,
@@ -87,8 +66,8 @@ def get_dashboard_full():
             "festival_widget": festival_widget,
             "category_breakdown": category_breakdown,
             "summary": {
-                "week_revenue": round(total_rev, 2),
-                "prev_week_revenue": round(prev_rev, 2),
+                "week_revenue": round(rev_summary['week'], 2),
+                "prev_week_revenue": round(rev_summary['prev_week'], 2),
                 "total_orders": total_orders
             }
         }), 200

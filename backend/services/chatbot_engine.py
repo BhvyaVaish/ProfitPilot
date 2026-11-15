@@ -1,11 +1,16 @@
 """
 chatbot_engine.py — Enhanced keyword-based chatbot with vast vocabulary coverage,
 tax jargon explanations, and business intelligence.
+
+Fully migrated to Firestore. No SQL.
 """
-from services.ai_engine import get_restock_suggestions, get_dead_stock, get_prioritized_alerts, get_home_mini_insights, get_bulk_sales_metrics
+
+from services.ai_engine import (
+    get_restock_suggestions, get_dead_stock, get_prioritized_alerts,
+    get_home_mini_insights, get_bulk_sales_metrics
+)
 from services.festival_service import get_upcoming_festivals, match_festivals_to_inventory
-from models import get_all_products, get_user_profile
-from database import get_connection
+import firestore_db
 
 # ── KEYWORD SETS ────────────────────────────────────────────────────────
 _GREET = {'hi','hello','hey','help','start','namaste','namaskar','hola','sup','yo','howdy','good morning','good evening','good afternoon','kaise ho','kya hal','kaise','madad','sahayata'}
@@ -45,56 +50,41 @@ TAX_EXPLANATIONS = {
 
 def _match_explain(msg):
     """Check if the user is asking for a tax/business term explanation."""
-    explain_triggers = ['explain', 'what is', 'what are', 'meaning of', 'kya hai', 'kya hota', 'samjhao',
-                       'tell me about', 'define', 'how does', 'how do', 'matlab', 'simple me', 'simply',
-                       'easy language', 'asan bhasha', 'hindi me', 'help me understand']
-    is_explain = any(t in msg for t in explain_triggers)
-    
-    if is_explain or True:  # Always check for direct term matches
-        for key in TAX_EXPLANATIONS:
-            if key in msg:
-                return TAX_EXPLANATIONS[key]
+    for key in TAX_EXPLANATIONS:
+        if key in msg:
+            return TAX_EXPLANATIONS[key]
     return None
 
 def get_top_products(limit=3, user_id='demo'):
-    conn = get_connection()
-    top = conn.execute("""
-        SELECT p.name, SUM(s.quantity) as total_qty
-        FROM sales s
-        JOIN products p ON s.product_id = p.id
-        WHERE p.user_id = ? AND s.sold_at >= date('now', '-30 days')
-        GROUP BY p.id
-        ORDER BY total_qty DESC
-        LIMIT ?
-    """, (user_id, limit)).fetchall()
-    conn.close()
-    return [dict(t) for t in top]
+    """Return top products by quantity sold in the last 30 days."""
+    top = firestore_db.get_top_products_by_qty(user_id=user_id, limit=limit, days=30)
+    return [{"name": t['name'], "total_qty": t['total_qty']} for t in top]
 
 def get_least_products(limit=5, user_id='demo'):
-    """Get least selling products (bottom performers)."""
-    conn = get_connection()
-    bottom = conn.execute("""
-        SELECT p.name, COALESCE(SUM(s.quantity), 0) as total_qty
-        FROM products p
-        LEFT JOIN sales s ON s.product_id = p.id AND s.sold_at >= date('now', '-30 days')
-        WHERE p.user_id = ?
-        GROUP BY p.id
-        HAVING p.stock > 0
-        ORDER BY total_qty ASC
-        LIMIT ?
-    """, (user_id, limit)).fetchall()
-    conn.close()
-    return [dict(t) for t in bottom]
+    """Get least selling products (bottom performers with stock > 0)."""
+    products = firestore_db.get_all_products(user_id)
+    sales = firestore_db.get_sales_since(user_id, firestore_db.days_ago(30))
+
+    qty_map = {}
+    for s in sales:
+        pid = s.get('product_id')
+        qty_map[pid] = qty_map.get(pid, 0) + s.get('quantity', 0)
+
+    candidates = []
+    for p in products:
+        if p.get('stock', 0) > 0:
+            candidates.append({
+                "name": p['name'],
+                "total_qty": qty_map.get(p['id'], 0)
+            })
+
+    candidates.sort(key=lambda x: x['total_qty'])
+    return candidates[:limit]
 
 def get_today_sales(user_id='demo'):
-    conn = get_connection()
-    stats = conn.execute("""
-        SELECT COALESCE(SUM(total_price), 0) as revenue, COALESCE(COUNT(DISTINCT id), 0) as transactions
-        FROM sales
-        WHERE user_id = ? AND sold_at >= date('now', 'start of day')
-    """, (user_id,)).fetchone()
-    conn.close()
-    return dict(stats)
+    sales = firestore_db.get_sales_since(user_id, firestore_db.today_start())
+    revenue = sum(s.get('total_price', 0) for s in sales)
+    return {"revenue": revenue, "transactions": len(sales)}
 
 def _build_response(title, bullets, closing=None):
     lines = [title, ""]
@@ -106,15 +96,12 @@ def _build_response(title, bullets, closing=None):
     return "\n".join(lines)
 
 def _match_any(msg, words_set):
-    """Check if any keyword/phrase from words_set appears in msg.
-    Multi-word phrases: substring match.
-    Single words: first try exact word match, then fallback to substring match."""
+    """Check if any keyword/phrase from words_set appears in msg."""
     for kw in words_set:
         if ' ' in kw:
             if kw in msg:
                 return True
         else:
-            # Check as exact word first
             if kw in msg.split():
                 return True
     return False
@@ -123,7 +110,7 @@ def get_response(message: str, user_id='demo') -> str:
     msg = message.lower().strip()
     words = set(msg.replace('?', '').replace('!', '').replace('.', '').replace(',', '').split())
 
-    profile = get_user_profile(user_id) if user_id != 'demo' else None
+    profile = firestore_db.get_user_profile(user_id) if user_id != 'demo' else None
     biz_context = ""
     if profile and profile.get('business_name'):
         biz_context = f" for {profile['business_name']}"
@@ -139,19 +126,19 @@ def get_response(message: str, user_id='demo') -> str:
         if profile and profile.get('full_name'):
             greeting_name = f", {profile['full_name'].split()[0]}"
         return (
-            f"Hi{greeting_name}! I'm ProfitPilot -- your business decision assistant.\\n\\n"
-            "Here's what I can help with:\\n"
-            "  What should I restock?\\n"
-            "  What sells the most?\\n"
-            "  What is not selling?\\n"
-            "  What will sell more soon?\\n"
-            "  Any upcoming festival demand?\\n"
-            "  What should I do today?\\n"
-            "  Show today's sales\\n"
-            "  How is my profit?\\n"
-            "  Tell me about GST\\n"
-            "  What is Section 44AD?\\n"
-            "  Explain Composition Scheme\\n\\n"
+            f"Hi{greeting_name}! I'm ProfitPilot -- your business decision assistant.\n\n"
+            "Here's what I can help with:\n"
+            "  What should I restock?\n"
+            "  What sells the most?\n"
+            "  What is not selling?\n"
+            "  What will sell more soon?\n"
+            "  Any upcoming festival demand?\n"
+            "  What should I do today?\n"
+            "  Show today's sales\n"
+            "  How is my profit?\n"
+            "  Tell me about GST\n"
+            "  What is Section 44AD?\n"
+            "  Explain Composition Scheme\n\n"
             "Just ask me anything about your business!"
         )
 
@@ -174,15 +161,15 @@ def get_response(message: str, user_id='demo') -> str:
         return _build_response(
             f"Here's your business situation today{biz_context} (Sales so far: Rs.{stats['revenue']:.2f}):",
             lines,
-            f"Best seller: {top}\\nHigh potential: {high}"
+            f"Best seller: {top}\nHigh potential: {high}"
         )
 
     # -- PROFIT / MARGIN ------------------------------------------------
     if _match_any(msg, _PROFIT):
-        conn = get_connection()
-        total_rev = conn.execute("SELECT COALESCE(SUM(total_price), 0) as r FROM sales WHERE user_id = ?", (user_id,)).fetchone()['r']
-        week_rev = conn.execute("SELECT COALESCE(SUM(total_price), 0) as r FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['r']
-        conn.close()
+        all_time = firestore_db.get_revenue_all_time(user_id)
+        total_rev = all_time['total_revenue']
+        rev_summary = firestore_db.get_revenue_summary(user_id)
+        week_rev = rev_summary['week']
 
         est_profit = total_rev * 0.30
         week_profit = week_rev * 0.30
@@ -190,25 +177,23 @@ def get_response(message: str, user_id='demo') -> str:
         tips = "Tip: Declare all business expenses (rent, electricity, salary) to reduce your taxable income. Visit the Tax Estimator page for detailed analysis."
         if profile:
             if profile.get('payment_mode') == 'digital':
-                tips += "\\nSince you use mostly digital payments, you may qualify for the lower 6% presumptive tax rate under Section 44AD."
+                tips += "\nSince you use mostly digital payments, you may qualify for the lower 6% presumptive tax rate under Section 44AD."
             if profile.get('msme_category') == 'micro':
-                tips += "\\nAs a Micro enterprise, explore MSME registration benefits like priority lending and delayed payment protection."
+                tips += "\nAs a Micro enterprise, explore MSME registration benefits like priority lending and delayed payment protection."
 
         return (
-            f"Here's your profit overview{biz_context}:\\n\\n"
-            f"  Total Revenue (all time): Rs.{total_rev:,.2f}\\n"
-            f"  Estimated Profit (30% margin): Rs.{est_profit:,.2f}\\n"
-            f"  This week's revenue: Rs.{week_rev:,.2f}\\n"
-            f"  This week's est. profit: Rs.{week_profit:,.2f}\\n\\n"
+            f"Here's your profit overview{biz_context}:\n\n"
+            f"  Total Revenue (all time): Rs.{total_rev:,.2f}\n"
+            f"  Estimated Profit (30% margin): Rs.{est_profit:,.2f}\n"
+            f"  This week's revenue: Rs.{week_rev:,.2f}\n"
+            f"  This week's est. profit: Rs.{week_profit:,.2f}\n\n"
             f"{tips}"
         )
 
     # -- GST / TAX QUERY ------------------------------------------------
     if _match_any(msg, _TAX):
-        conn = get_connection()
-        total_rev = conn.execute("SELECT COALESCE(SUM(total_price), 0) as r FROM sales WHERE user_id = ?", (user_id,)).fetchone()['r']
-        conn.close()
-
+        all_time = firestore_db.get_revenue_all_time(user_id)
+        total_rev = all_time['total_revenue']
         annual_est = total_rev * (365 / max(1, 30))
 
         lines = [
@@ -265,12 +250,10 @@ def get_response(message: str, user_id='demo') -> str:
 
     # -- DEAD STOCK / LEAST SELLING --------------------------------------
     if _match_any(msg, _DEAD):
-        # Check if user is asking specifically about least selling (not dead stock)
         least_keywords = {'least sold','least selling','kam biki','kam bikta','sabse kam','sabse kam bika','sabse kam biki','worst selling','lowest selling','least popular','lowest','least','bottom','worst','flop'}
         is_least_query = any(kw in msg for kw in least_keywords)
 
         if is_least_query:
-            # Show least selling products (products that exist but sell the least)
             bottom = get_least_products(limit=5, user_id=user_id)
             if not bottom:
                 return "No product data found yet. Add products and start billing to track performance."
@@ -281,10 +264,8 @@ def get_response(message: str, user_id='demo') -> str:
                 "Tip: Consider discounts, bundling, or promoting these items to move stock faster."
             )
 
-        # Default: show dead stock (no sales at all)
         dead = get_dead_stock(user_id)
         if not dead:
-            # Fallback to least selling if no dead stock
             bottom = get_least_products(limit=5, user_id=user_id)
             if bottom:
                 bullets = [f"{p['name']} -- {p['total_qty']} units sold this month" for p in bottom]
@@ -307,10 +288,10 @@ def get_response(message: str, user_id='demo') -> str:
     # -- DEMAND / HIGH POTENTIAL ----------------------------------------
     if _match_any(msg, _DEMAND):
         result = match_festivals_to_inventory(user_id)
-        suggestions = result['suggestions']
-        festivals = result['festivals']
+        suggestions = result.get('suggestions', [])
+        festivals = result.get('festivals', [])
 
-        products = get_all_products(user_id)
+        products = firestore_db.get_all_products(user_id)
         metrics = get_bulk_sales_metrics(user_id)
         high_potential = []
         for p in products:
@@ -324,8 +305,8 @@ def get_response(message: str, user_id='demo') -> str:
 
         bullets = high_potential[:5]
 
-        restock_items = [s for s in suggestions if s['type'] == 'restock'][:3]
-        opportunity_items = [s for s in suggestions if s['type'] == 'opportunity'][:3]
+        restock_items = [s for s in suggestions if s.get('type') == 'restock'][:3]
+        opportunity_items = [s for s in suggestions if s.get('type') == 'opportunity'][:3]
 
         for s in restock_items:
             bullets.append(f"{s['product']} -- {s['festival']} in {s['days_away']} day(s), stock up! (Current: {s['current_stock']})")
@@ -337,22 +318,22 @@ def get_response(message: str, user_id='demo') -> str:
 
         closing = "Stock up on these products in advance to maximize your profits."
         if festivals:
-            closing += f"\\nNearest festival: {festivals[0]['name']} in {festivals[0]['days_away']} day(s)."
+            closing += f"\nNearest festival: {festivals[0]['name']} in {festivals[0]['days_away']} day(s)."
 
         return _build_response("These items show high demand potential:", bullets, closing)
 
     # -- FESTIVAL -------------------------------------------------------
     if _match_any(msg, _FESTIVAL):
         result = match_festivals_to_inventory(user_id)
-        festivals = result['festivals']
-        suggestions = result['suggestions']
+        festivals = result.get('festivals', [])
+        suggestions = result.get('suggestions', [])
 
         if not festivals:
             return "No major festivals detected in the coming 15 days. Inventory looks stable."
 
         bullets = []
         for f in festivals[:5]:
-            cats = ', '.join(f['relevant_categories'][:3]) if f['relevant_categories'] else 'general items'
+            cats = ', '.join(f['relevant_categories'][:3]) if f.get('relevant_categories') else 'general items'
             demand = ', '.join(f.get('demand_items', [])[:3]) if f.get('demand_items') else ''
             line = f"{f['name']} in {f['days_away']} day(s) -- Stock up on: {cats}"
             if demand:
@@ -374,51 +355,46 @@ def get_response(message: str, user_id='demo') -> str:
     # -- SALES / REVENUE ------------------------------------------------
     if _match_any(msg, _SALES):
         stats = get_today_sales(user_id)
-        conn = get_connection()
-        week_rev = conn.execute("SELECT COALESCE(SUM(total_price),0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-7 days')", (user_id,)).fetchone()['s']
-        month_rev = conn.execute("SELECT COALESCE(SUM(total_price),0) as s FROM sales WHERE user_id = ? AND sold_at >= date('now', '-30 days')", (user_id,)).fetchone()['s']
-        conn.close()
+        rev_summary = firestore_db.get_revenue_summary(user_id)
+        week_rev = rev_summary['week']
+
+        month_sales = firestore_db.get_sales_since(user_id, firestore_db.days_ago(30))
+        month_rev = sum(s.get('total_price', 0) for s in month_sales)
+
         return (
-            f"Today's revenue{biz_context}: Rs.{stats['revenue']:.2f} from {stats['transactions']} individual items sold.\\n\\n"
-            f"Revenue this week: Rs.{week_rev:.2f}\\n"
-            f"Revenue this month: Rs.{month_rev:.2f}\\n\\n"
+            f"Today's revenue{biz_context}: Rs.{stats['revenue']:.2f} from {stats['transactions']} individual items sold.\n\n"
+            f"Revenue this week: Rs.{week_rev:.2f}\n"
+            f"Revenue this month: Rs.{month_rev:.2f}\n\n"
             "Check the Dashboard for the full Revenue Velocity chart."
         )
 
     # -- STOCK / INVENTORY OVERVIEW -------------------------------------
     if _match_any(msg, _STOCK):
-        products = get_all_products(user_id)
-        conn = get_connection()
-        rows = conn.execute("""
-            SELECT p.id, p.stock,
-                COALESCE(SUM(s.quantity), 0) as past_7d_sales
-            FROM products p
-            LEFT JOIN sales s ON p.id = s.product_id AND s.sold_at >= date('now', '-7 days')
-            WHERE p.user_id = ?
-            GROUP BY p.id
-        """, (user_id,)).fetchall()
-        conn.close()
+        products = firestore_db.get_all_products(user_id)
+        metrics = firestore_db.get_bulk_sales_metrics(user_id)
 
         low = []
         out = []
-        for r in rows:
-            avg_daily = float(r['past_7d_sales']) / 7.0
+        for p in products:
+            pid = p['id']
+            avg_daily = metrics.get(pid, {}).get('avg_last_7', 0)
             thresh = max(5, avg_daily * 2)
-            if r['stock'] == 0:
-                out.append(r['id'])
-            elif r['stock'] < thresh:
-                low.append(r['id'])
+            stock = p.get('stock', 0)
+            if stock == 0:
+                out.append(pid)
+            elif stock < thresh:
+                low.append(pid)
 
         return (
-            f"Your inventory overview{biz_context}:\\n\\n"
-            f"  Total products: {len(products)}\\n"
-            f"  Low stock items: {len(low)}\\n"
-            f"  Out of stock: {len(out)}\\n\\n"
+            f"Your inventory overview{biz_context}:\n\n"
+            f"  Total products: {len(products)}\n"
+            f"  Low stock items: {len(low)}\n"
+            f"  Out of stock: {len(out)}\n\n"
             "Visit the Inventory page to manage your stock easily."
         )
 
     # -- SPECIFIC PRODUCT QUERY -----------------------------------------
-    products = get_all_products(user_id)
+    products = firestore_db.get_all_products(user_id)
     matched = [p for p in products if p['name'].lower() in msg]
     if matched:
         p = matched[0]
@@ -438,20 +414,21 @@ def get_response(message: str, user_id='demo') -> str:
             if pct > 20: trend = f"increasing (+{round(pct)}%)"
             elif pct < -20: trend = f"declining ({round(pct)}%)"
 
-        if p['stock'] == 0:
+        stock = p.get('stock', 0)
+        if stock == 0:
             status = "Out of Stock"
-        elif p['stock'] < thresh:
-            status = f"Low ({p['stock']} units)"
+        elif stock < thresh:
+            status = f"Low ({stock} units)"
         else:
-            status = f"OK ({p['stock']} units)"
+            status = f"OK ({stock} units)"
 
         return (
-            f"Here's what I know about {p['name']}:\\n\\n"
-            f"  Stock status: {status}\\n"
-            f"  Current price: Rs.{p['price']}\\n"
-            f"  Sales last 7 days: {last_7} units\\n"
-            f"  Demand trend: {trend}\\n"
-            f"  Estimated days left: {'Infinite' if avg_daily == 0 else round(p['stock'] / avg_daily)}"
+            f"Here's what I know about {p['name']}:\n\n"
+            f"  Stock status: {status}\n"
+            f"  Current price: Rs.{p['price']}\n"
+            f"  Sales last 7 days: {last_7} units\n"
+            f"  Demand trend: {trend}\n"
+            f"  Estimated days left: {'Infinite' if avg_daily == 0 else round(stock / avg_daily)}"
         )
 
     # -- THANKS ---------------------------------------------------------
@@ -460,16 +437,16 @@ def get_response(message: str, user_id='demo') -> str:
 
     # -- FALLBACK -------------------------------------------------------
     return (
-        "I didn't quite understand that. Here are some things I can help with:\\n\\n"
-        "  \"What should I restock?\"\\n"
-        "  \"What sells the most?\"\\n"
-        "  \"What is not selling?\"\\n"
-        "  \"Any upcoming festival demand?\"\\n"
-        "  \"What should I do today?\"\\n"
-        "  \"Show me today's sales\"\\n"
-        "  \"How is my profit?\"\\n"
-        "  \"Tell me about GST\"\\n"
-        "  \"What is Section 44AD?\"\\n"
-        "  \"Explain Composition Scheme\"\\n"
+        "I didn't quite understand that. Here are some things I can help with:\n\n"
+        "  \"What should I restock?\"\n"
+        "  \"What sells the most?\"\n"
+        "  \"What is not selling?\"\n"
+        "  \"Any upcoming festival demand?\"\n"
+        "  \"What should I do today?\"\n"
+        "  \"Show me today's sales\"\n"
+        "  \"How is my profit?\"\n"
+        "  \"Tell me about GST\"\n"
+        "  \"What is Section 44AD?\"\n"
+        "  \"Explain Composition Scheme\"\n"
         "  \"What is Input Tax Credit?\""
     )

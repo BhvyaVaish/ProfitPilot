@@ -1,6 +1,12 @@
+"""
+auth.py — Authentication & user profile routes.
+
+Fully migrated to Firestore. No SQL.
+"""
+
 from flask import Blueprint, request, jsonify, g
 from auth_middleware import require_auth, optional_auth
-from database import get_connection
+import firestore_db
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -10,18 +16,12 @@ auth_bp = Blueprint('auth', __name__)
 def check_user():
     """Check if user exists and is onboarded."""
     try:
-        conn = get_connection()
-        user = conn.execute(
-            "SELECT * FROM user_profiles WHERE firebase_uid = ?",
-            (g.user_id,)
-        ).fetchone()
-        conn.close()
-
+        user = firestore_db.get_user_profile(g.user_id)
         if user:
             return jsonify({
                 "exists": True,
-                "onboarded": bool(user['onboarded']),
-                "profile": dict(user)
+                "onboarded": bool(user.get('onboarded', False)),
+                "profile": user
             }), 200
         else:
             return jsonify({
@@ -41,74 +41,29 @@ def onboarding():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        conn = get_connection()
-        c = conn.cursor()
+        profile_data = {
+            "firebase_uid": g.user_id,
+            "email": g.user_email,
+            "full_name": data.get('full_name', ''),
+            "phone": data.get('phone', ''),
+            "city": data.get('city', ''),
+            "state": data.get('state', ''),
+            "business_name": data.get('business_name', ''),
+            "business_address": data.get('business_address', ''),
+            "gstin": data.get('gstin', ''),
+            "pan_number": data.get('pan_number', ''),
+            "business_type": data.get('business_type', 'trading'),
+            "business_sector": data.get('business_sector', 'general'),
+            "turnover_range": data.get('turnover_range', 'below_1cr'),
+            "msme_category": data.get('msme_category', 'micro'),
+            "payment_mode": data.get('payment_mode', 'mixed'),
+            "onboarded": True,
+        }
 
-        # Check if already onboarded
-        existing = conn.execute(
-            "SELECT firebase_uid FROM user_profiles WHERE firebase_uid = ?",
-            (g.user_id,)
-        ).fetchone()
+        firestore_db.upsert_user_profile(g.user_id, profile_data)
 
-        if existing:
-            # Update existing profile
-            c.execute("""
-                UPDATE user_profiles SET
-                    full_name = ?, phone = ?, city = ?, state = ?,
-                    business_name = ?, business_address = ?,
-                    gstin = ?, pan_number = ?,
-                    business_type = ?, business_sector = ?,
-                    turnover_range = ?, msme_category = ?,
-                    payment_mode = ?, onboarded = 1
-                WHERE firebase_uid = ?
-            """, (
-                data.get('full_name', ''),
-                data.get('phone', ''),
-                data.get('city', ''),
-                data.get('state', ''),
-                data.get('business_name', ''),
-                data.get('business_address', ''),
-                data.get('gstin', ''),
-                data.get('pan_number', ''),
-                data.get('business_type', 'trading'),
-                data.get('business_sector', 'general'),
-                data.get('turnover_range', 'below_1cr'),
-                data.get('msme_category', 'micro'),
-                data.get('payment_mode', 'mixed'),
-                g.user_id
-            ))
-        else:
-            # Create new profile
-            c.execute("""
-                INSERT INTO user_profiles (
-                    firebase_uid, email, full_name, phone, city, state,
-                    business_name, business_address, gstin, pan_number,
-                    business_type, business_sector, turnover_range,
-                    msme_category, payment_mode, onboarded
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-            """, (
-                g.user_id,
-                g.user_email,
-                data.get('full_name', ''),
-                data.get('phone', ''),
-                data.get('city', ''),
-                data.get('state', ''),
-                data.get('business_name', ''),
-                data.get('business_address', ''),
-                data.get('gstin', ''),
-                data.get('pan_number', ''),
-                data.get('business_type', 'trading'),
-                data.get('business_sector', 'general'),
-                data.get('turnover_range', 'below_1cr'),
-                data.get('msme_category', 'micro'),
-                data.get('payment_mode', 'mixed')
-            ))
-
-        # Seed starter products based on business sector
-        _seed_user_starter_data(c, g.user_id, data.get('business_sector', 'general'))
-
-        conn.commit()
-        conn.close()
+        # Seed starter products based on business sector (only if user has none)
+        _seed_user_starter_data(g.user_id, data.get('business_sector', 'general'))
 
         return jsonify({"success": True, "message": "Onboarding complete!"}), 201
     except Exception as e:
@@ -120,17 +75,10 @@ def onboarding():
 def get_profile():
     """Get current user's profile."""
     try:
-        conn = get_connection()
-        user = conn.execute(
-            "SELECT * FROM user_profiles WHERE firebase_uid = ?",
-            (g.user_id,)
-        ).fetchone()
-        conn.close()
-
+        user = firestore_db.get_user_profile(g.user_id)
         if not user:
             return jsonify({"error": "Profile not found"}), 404
-
-        return jsonify({"profile": dict(user)}), 200
+        return jsonify({"profile": user}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -144,7 +92,6 @@ def update_profile():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        conn = get_connection()
         allowed_fields = [
             'full_name', 'phone', 'city', 'state',
             'business_name', 'business_address', 'gstin', 'pan_number',
@@ -152,25 +99,12 @@ def update_profile():
             'msme_category', 'payment_mode'
         ]
 
-        updates = []
-        params = []
-        for field in allowed_fields:
-            if field in data:
-                updates.append(f"{field} = ?")
-                params.append(data[field])
+        updates = {f: data[f] for f in allowed_fields if f in data}
 
         if not updates:
-            conn.close()
             return jsonify({"error": "No valid fields to update"}), 400
 
-        params.append(g.user_id)
-        conn.execute(
-            f"UPDATE user_profiles SET {', '.join(updates)} WHERE firebase_uid = ?",
-            params
-        )
-        conn.commit()
-        conn.close()
-
+        firestore_db.upsert_user_profile(g.user_id, updates)
         return jsonify({"success": True}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -180,7 +114,6 @@ def update_profile():
 @optional_auth
 def debug_user():
     """Debug endpoint to check current user_id."""
-    from flask import g
     return jsonify({
         "user_id": g.user_id,
         "user_email": getattr(g, 'user_email', 'N/A'),
@@ -197,76 +130,26 @@ def flush_user_data():
         # Require that they at least appear signed in from the frontend
         if not request.headers.get('Authorization'):
             return jsonify({"error": "Authentication required. Please sign in."}), 401
-        
-        conn = get_connection()
-        c = conn.cursor()
-        
-        # Count before deletion for verification
-        before_products = c.execute("SELECT COUNT(*) as count FROM products WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        before_sales = c.execute("SELECT COUNT(*) as count FROM sales WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        before_bills = c.execute("SELECT COUNT(*) as count FROM bills WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        before_alerts = c.execute("SELECT COUNT(*) as count FROM alerts WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        
-        print(f"[FLUSH] User {g.user_id} - Before: {before_products} products, {before_sales} sales, {before_bills} bills, {before_alerts} alerts")
-        
-        # IMPORTANT: Delete in correct order due to foreign key constraints
-        # Delete sales first (references products)
-        c.execute("DELETE FROM sales WHERE user_id = ?", (g.user_id,))
-        sales_deleted = c.rowcount
-        
-        # Delete bills (no foreign key constraints)
-        c.execute("DELETE FROM bills WHERE user_id = ?", (g.user_id,))
-        bills_deleted = c.rowcount
-        
-        # Delete alerts (no foreign key constraints)
-        c.execute("DELETE FROM alerts WHERE user_id = ?", (g.user_id,))
-        alerts_deleted = c.rowcount
-        
-        # Delete products last (after sales are deleted)
-        c.execute("DELETE FROM products WHERE user_id = ?", (g.user_id,))
-        products_deleted = c.rowcount
-        
-        conn.commit()
-        
-        # Verify deletion
-        after_products = c.execute("SELECT COUNT(*) as count FROM products WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        after_sales = c.execute("SELECT COUNT(*) as count FROM sales WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        after_bills = c.execute("SELECT COUNT(*) as count FROM bills WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        after_alerts = c.execute("SELECT COUNT(*) as count FROM alerts WHERE user_id = ?", (g.user_id,)).fetchone()['count']
-        
-        print(f"[FLUSH] User {g.user_id} - After: {after_products} products, {after_sales} sales, {after_bills} bills, {after_alerts} alerts")
-        print(f"[FLUSH] User {g.user_id} - Deleted: {products_deleted} products, {sales_deleted} sales, {bills_deleted} bills, {alerts_deleted} alerts")
-        
-        conn.close()
-        
-        if after_products > 0 or after_sales > 0 or after_bills > 0 or after_alerts > 0:
-            return jsonify({
-                "error": f"Flush incomplete. Remaining: {after_products} products, {after_sales} sales, {after_bills} bills, {after_alerts} alerts",
-                "success": False
-            }), 500
-        
+
+        counts = firestore_db.delete_user_data(g.user_id)
+
+        print(f"[FLUSH] User {g.user_id} - Deleted: {counts}")
+
         return jsonify({
             "success": True,
             "message": "All data flushed successfully. You can now start with fresh data.",
-            "deleted": {
-                "products": products_deleted,
-                "sales": sales_deleted,
-                "bills": bills_deleted,
-                "alerts": alerts_deleted
-            }
+            "deleted": counts
         }), 200
     except Exception as e:
         print(f"[FLUSH ERROR] User {g.user_id}: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 
-def _seed_user_starter_data(cursor, user_id, business_sector):
+def _seed_user_starter_data(user_id: str, business_sector: str):
     """Seed starter products for a new user based on their business sector."""
     # Check if user already has products
-    existing = cursor.execute(
-        "SELECT COUNT(*) as c FROM products WHERE user_id = ?", (user_id,)
-    ).fetchone()
-    if existing and existing['c'] > 0:
+    existing = list(firestore_db.products_col(user_id).limit(1).stream())
+    if existing:
         return
 
     sector_products = {
@@ -313,6 +196,13 @@ def _seed_user_starter_data(cursor, user_id, business_sector):
             ("Geometry Box", "stationery", 150.0, 30),
             ("A4 Paper Ream (500 sheets)", "stationery", 350.0, 15),
         ],
+        'hardware': [
+            ("Hammer (500g)", "hardware", 180.0, 20),
+            ("Screwdriver Set (6pc)", "hardware", 250.0, 15),
+            ("PVC Tape (5m)", "hardware", 45.0, 50),
+            ("LED Torch (Rechargeable)", "hardware", 350.0, 25),
+            ("Wall Hooks (10pk)", "hardware", 60.0, 40),
+        ],
     }
 
     # Default products for general or unrecognized sectors
@@ -323,7 +213,13 @@ def _seed_user_starter_data(cursor, user_id, business_sector):
     ])
 
     for name, category, price, stock in products:
-        cursor.execute(
-            "INSERT INTO products (name, category, price, stock, user_id) VALUES (?, ?, ?, ?, ?)",
-            (name, category, price, stock, user_id)
-        )
+        try:
+            firestore_db.insert_product(
+                user_id=user_id,
+                name=name,
+                category=category,
+                price=price,
+                stock=stock,
+            )
+        except Exception as e:
+            print(f"[SEED] Error inserting {name}: {e}")

@@ -1,5 +1,11 @@
-from flask import Blueprint, request, jsonify, g
-from database import get_connection
+"""
+tax.py — Tax estimation & GST calculation routes.
+
+Fully migrated to Firestore. No SQL.
+"""
+
+from flask import Blueprint, jsonify, g
+import firestore_db
 from config import (
     CATEGORY_GST_RATES, COST_RATIO,
     INCOME_TAX_NEW_REGIME, INCOME_TAX_OLD_REGIME,
@@ -9,7 +15,6 @@ from config import (
     SEC_44AD_DIGITAL_RATE, SEC_44AD_CASH_RATE,
     COMPOSITION_TURNOVER_LIMIT, COMPOSITION_TAX_RATE,
 )
-from models import get_user_profile
 from auth_middleware import optional_auth
 
 tax_bp = Blueprint('tax_bp', __name__)
@@ -40,30 +45,21 @@ def _apply_rebate_87a(tax, taxable_income, limit, max_rebate):
 def get_tax_estimate():
     try:
         user_id = g.user_id
-        conn = get_connection()
 
         # Get user profile for personalized suggestions
-        profile = get_user_profile(user_id) if user_id != 'demo' else None
+        profile = firestore_db.get_user_profile(user_id) if user_id != 'demo' else None
 
-        # -- Core Revenue --------------------------------------------------
-        revenue = conn.execute(
-            "SELECT COALESCE(SUM(s.total_price), 0) as total FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ?", (user_id,)
-        ).fetchone()['total'] or 0
+        # -- Core Revenue & Sales Days -------------------------------------
+        rev_all = firestore_db.get_revenue_all_time(user_id)
+        revenue = float(rev_all['total_revenue'] or 0)
+        sales_days = int(rev_all['active_sales_days'] or 1)
+        category_revenue = rev_all['category_revenue']
 
-        week_revenue = conn.execute(
-            "SELECT COALESCE(SUM(s.total_price), 0) as total FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-7 days')", (user_id,)
-        ).fetchone()['total'] or 0
+        rev_summary = firestore_db.get_revenue_summary(user_id)
+        week_revenue = float(rev_summary['week'] or 0)
+        prev_week_revenue = float(rev_summary['prev_week'] or 0)
 
-        prev_week_revenue = conn.execute(
-            "SELECT COALESCE(SUM(s.total_price), 0) as total FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ? AND s.sold_at >= date('now', '-14 days') AND s.sold_at < date('now', '-7 days')", (user_id,)
-        ).fetchone()['total'] or 0
-
-        # -- Active Sales Days & Annual Projection -------------------------
-        sales_days = conn.execute(
-            "SELECT COUNT(DISTINCT date(s.sold_at)) as days FROM sales s JOIN products p ON p.id = s.product_id WHERE p.user_id = ?", (user_id,)
-        ).fetchone()['days'] or 1
-
-        avg_daily_revenue = revenue / sales_days
+        avg_daily_revenue = revenue / max(1, sales_days)
         annual_projected_revenue = avg_daily_revenue * 365
 
         # -- Profit --------------------------------------------------------
@@ -72,25 +68,17 @@ def get_tax_estimate():
         annual_projected_profit = (net_profit / sales_days) * 365 if sales_days > 0 else 0
 
         # -- GST (Category-wise Computation) -------------------------------
-        category_revenue_rows = conn.execute("""
-            SELECT p.category, SUM(s.total_price) as cat_revenue
-            FROM sales s
-            JOIN products p ON p.id = s.product_id
-            WHERE p.user_id = ?
-            GROUP BY p.category
-        """, (user_id,)).fetchall()
-
-        gst_liability = 0
+        gst_liability = 0.0
         gst_breakdown = []
-        for r in category_revenue_rows:
-            cat = (r['category'] or 'general').lower()
-            rate = CATEGORY_GST_RATES.get(cat, 0.18)
-            cat_gst = (r['cat_revenue'] or 0) * rate
+        for cat, cat_rev in category_revenue.items():
+            cat_clean = (cat or 'general').lower()
+            rate = CATEGORY_GST_RATES.get(cat_clean, 0.18)
+            cat_gst = cat_rev * rate
             gst_liability += cat_gst
             if cat_gst > 0:
                 gst_breakdown.append({
-                    "category": cat,
-                    "revenue": round(r['cat_revenue'] or 0, 2),
+                    "category": cat_clean,
+                    "revenue": round(cat_rev, 2),
                     "rate": rate,
                     "rate_pct": f"{int(rate * 100)}%",
                     "gst": round(cat_gst, 2)
@@ -132,7 +120,6 @@ def get_tax_estimate():
         total_liability = gst_liability + income_tax_current
 
         # -- Section 44AD Presumptive Taxation -----------------------------
-        # Personalize based on user's payment mode
         payment_mode = 'mixed'
         if profile:
             payment_mode = profile.get('payment_mode', 'mixed')
@@ -209,59 +196,61 @@ def get_tax_estimate():
         else:
             gst_filing = "Monthly (GSTR-1 & GSTR-3B)"
 
-        # -- Product-wise Tax Impact ---------------------------------------
-        all_product_tax_rows = conn.execute("""
-            SELECT p.name, p.category,
-                   COALESCE(SUM(s.total_price), 0) as product_revenue
-            FROM products p
-            JOIN sales s ON p.id = s.product_id
-            WHERE p.user_id = ?
-            GROUP BY p.id
-        """, (user_id,)).fetchall()
+        # -- Product-wise Tax Impact & Margins -----------------------------
+        all_sales = firestore_db.get_all_sales(user_id)
+        products = firestore_db.get_all_products(user_id)
+        prod_map = {p['id']: p for p in products}
+
+        prod_agg = {}
+        for s in all_sales:
+            pid = s.get('product_id')
+            pname = s.get('product_name') or (prod_map.get(pid, {}).get('name') if pid else 'Item')
+            cat = s.get('category') or (prod_map.get(pid, {}).get('category') if pid else 'general')
+            qty = s.get('quantity', 0)
+            tot = s.get('total_price', 0)
+
+            if pid not in prod_agg:
+                prod_agg[pid] = {'name': pname, 'category': cat, 'revenue': 0.0, 'quantity': 0}
+            prod_agg[pid]['revenue'] += tot
+            prod_agg[pid]['quantity'] += qty
 
         product_tax_list = []
-        for r in all_product_tax_rows:
-            cat = (r['category'] or 'general').lower()
+        for pid, data in prod_agg.items():
+            cat = (data['category'] or 'general').lower()
             rate = CATEGORY_GST_RATES.get(cat, 0.18)
-            tax_contrib = (r['product_revenue'] or 0) * rate
+            tax_contrib = data['revenue'] * rate
             product_tax_list.append({
-                "name": r['name'],
+                "name": data['name'],
                 "category": cat,
-                "revenue": round(r['product_revenue'], 2),
+                "revenue": round(data['revenue'], 2),
                 "gst_rate": f"{int(rate * 100)}%",
                 "tax_contribution": round(tax_contrib, 2)
             })
         product_tax_list.sort(key=lambda x: x['tax_contribution'], reverse=True)
         product_tax = product_tax_list[:8]
 
-        # -- Profit Margin by Product --------------------------------------
-        product_margin_rows = conn.execute("""
-            SELECT p.name, p.price,
-                   COALESCE(SUM(s.quantity), 0) as total_qty,
-                   COALESCE(SUM(s.total_price), 0) as total_revenue
-            FROM products p
-            LEFT JOIN sales s ON p.id = s.product_id
-            WHERE p.user_id = ?
-            GROUP BY p.id, p.name, p.price
-            HAVING COALESCE(SUM(s.quantity), 0) > 0
-            ORDER BY total_revenue DESC
-            LIMIT 8
-        """, (user_id,)).fetchall()
-
         product_margins = []
-        for r in product_margin_rows:
-            sell_price = r['price']
-            cost_price = sell_price * COST_RATIO
-            margin_pct = round(((sell_price - cost_price) / sell_price) * 100, 1)
-            profit_per_unit = round(sell_price - cost_price, 2)
-            product_margins.append({
-                "name": r['name'],
-                "sell_price": round(sell_price, 2),
-                "cost_price": round(cost_price, 2),
-                "margin_pct": margin_pct,
-                "profit_per_unit": profit_per_unit,
-                "total_revenue": round(r['total_revenue'], 2)
-            })
+        for pid, data in prod_agg.items():
+            if data['quantity'] > 0:
+                p_item = prod_map.get(pid)
+                sell_price = p_item['price'] if p_item else (data['revenue'] / data['quantity'])
+                cost_price = (
+                    p_item['cost_price']
+                    if p_item and p_item.get('cost_price') is not None
+                    else sell_price * COST_RATIO
+                )
+                margin_pct = round(((sell_price - cost_price) / sell_price) * 100, 1) if sell_price > 0 else 0
+                profit_per_unit = round(sell_price - cost_price, 2)
+                product_margins.append({
+                    "name": data['name'],
+                    "sell_price": round(sell_price, 2),
+                    "cost_price": round(cost_price, 2),
+                    "margin_pct": margin_pct,
+                    "profit_per_unit": profit_per_unit,
+                    "total_revenue": round(data['revenue'], 2)
+                })
+        product_margins.sort(key=lambda x: x['total_revenue'], reverse=True)
+        product_margins = product_margins[:8]
 
         # -- Smart Alerts --------------------------------------------------
         alerts = []
@@ -292,11 +281,10 @@ def get_tax_estimate():
                 "message": "Your projected turnover may require GST audit. Consult a CA."
             })
 
-        # -- Personalized Tips (based on user profile) ---------------------
+        # -- Personalized Tips ---------------------------------------------
         personalized_tips = []
         if profile:
             btype = profile.get('business_type', '')
-            sector = profile.get('business_sector', '')
             msme = profile.get('msme_category', '')
 
             if btype == 'manufacturing':
@@ -313,8 +301,6 @@ def get_tax_estimate():
 
             if payment_mode == 'digital':
                 personalized_tips.append("Your digital payment preference qualifies you for the lower 6% presumptive rate — potential tax savings!")
-
-        conn.close()
 
         return jsonify({
             "revenue": round(revenue, 2),
