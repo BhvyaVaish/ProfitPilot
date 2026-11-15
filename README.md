@@ -3,15 +3,15 @@
 # ProfitPilot
 
 **Intelligent Inventory & Business Management for MSMEs.** <br>
-*Smart inventory, real-time AI insights, seamless billing, GST tools and much more.....* <br>
+*Smart inventory, real-time AI insights, seamless billing, GST tools, and always-on cloud database.* <br>
 *Built for Indian small businesses.* <br>
    
 [![Python](https://img.shields.io/badge/Python-3.x-blue?style=flat-square&logo=python)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey?style=flat-square&logo=flask)](https://flask.palletsprojects.com)
-[![Firebase](https://img.shields.io/badge/Auth-Firebase-yellow?style=flat-square&logo=firebase)](https://firebase.google.com)
+[![Firebase Auth](https://img.shields.io/badge/Auth-Firebase-yellow?style=flat-square&logo=firebase)](https://firebase.google.com)
+[![Firestore](https://img.shields.io/badge/Database-Cloud_Firestore-orange?style=flat-square&logo=firebase)](https://firebase.google.com/docs/firestore)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)](https://vercel.com)
-
 
 ---
 </div>
@@ -20,32 +20,20 @@
 
 ProfitPilot is a web app that helps small shop owners manage their business without needing an accountant or a tech background. Upload your inventory, record sales and the app figures out what to restock, what's not selling, how much tax you owe and what to focus on today — all in one place.
 
-It's built specifically for the Indian market: GST rates, festival demand cycles, Section 44AD, Composition Scheme and Hindi language support are all built in.
+It's built specifically for the Indian market: GST rates, festival demand cycles, Section 44AD, Composition Scheme, and bilingual Hindi/English support are all built in.
 
 ---
 
 ## ✨ Features
 
-**Home — AI Command Center**  
-Real-time priority actions ranked by urgency. Business health score. Festival demand alerts. Weekly revenue at a glance.
-
-**Inventory Management**  
-Add products manually or import via CSV. Live stock filters (All / In Stock / Low / Out of Stock). Smart restock thresholds based on actual sales velocity.
-
-**Analytics Dashboard**  
-Revenue charts, top products, category breakdown, dead stock warnings, and procurement suggestions — all pulled from your own data.
-
-**Billing & Invoicing**  
-Create bills, auto-calculate GST, print professional invoices, and track bill history. Stock deducts automatically on each sale.
-
-**Tax Estimator**  
-GST breakdown by category. Income tax comparison (New vs Old Regime). Section 44AD and GST Composition Scheme eligibility checker. Fully personalized based on your business profile.
-
-**AI Assistant**  
-Ask questions in plain English or Hindi — *"What should I restock?"*, *"Mera profit kaisa hai?"* — and get answers based on your actual data, not generic answers.
-
-**Multi-User & Secure**  
-Every user's data is completely isolated. Sign in with email or Google. Onboarding captures your business profile for personalized AI suggestions and tax tips.
+- **Home — AI Command Center:** Real-time priority actions ranked by urgency, composite business health score, festival demand alerts, and weekly revenue velocity at a glance.
+- **Inventory Management:** Add products manually or bulk import via CSV. Live stock filters (All / In Stock / Low / Out of Stock). Smart restock thresholds calculated from rolling sales velocity.
+- **Analytics Dashboard:** Revenue trajectory charts, top products, category breakdown, dead stock warnings, and smart procurement suggestions.
+- **Billing & Invoicing:** Rapid bill creation with category-based GST auto-calculation, printable invoices, and real-time automatic stock decrements.
+- **Tax Estimator:** Category-wise GST breakdown, Income Tax comparison (New vs. Old Regime), Section 44AD presumptive taxation, and GST Composition Scheme checker.
+- **AI Assistant:** Bilingual business chatbot (English & Hindi) that understands questions like *"What should I restock?"*, *"Aaj ki sales kitni hui?"*, or *"Explain Section 44AD"*.
+- **Always-On Cloud Architecture:** Powered by Google Cloud Firestore and Vercel Serverless — zero database sleeping, zero pause timeouts, instant response times.
+- **Multi-Tenant Security:** Every user's data is strictly isolated by authenticated UID with Firebase Admin SDK verification on every request.
 
 ---
 
@@ -53,25 +41,26 @@ Every user's data is completely isolated. Sign in with email or Google. Onboardi
 
 **[→ Open ProfitPilot](https://profitpilotio.vercel.app/)**
 
-> **This is the intended way to experience ProfitPilot.**
-> ProfitPilot is a full-stack cloud application. Authentication, AI insights, dynamic analytics, and database operations are designed to run seamlessly in our production environment. 
+> ProfitPilot is a production full-stack application. Authentication, Firestore storage, real-time analytics, and AI insights run seamlessly on Vercel with zero cold-start database delays.
 
 ---
 
 ## 🧠 Tech Stack
 
-**Frontend:** HTML5, CSS3 (Glassmorphism), Vanilla JavaScript (ES6+), Chart.js, PWA (Service Workers, Web App Manifest)
-**Backend:** Python 3, Flask (RESTful API), SQLite (local) / PostgreSQL (production)
-**Services:** Google Gemini AI (Insights/Chatbot), Google Calendar API (Festivals), Firebase Auth
-**Deployment:** Vercel (Serverless Edge), Supabase (PostgreSQL)
+- **Frontend:** HTML5, CSS3 (Glassmorphic Design), Vanilla JavaScript (ES6+), Chart.js, PWA (Service Workers, Web App Manifest)
+- **Backend:** Python 3, Flask RESTful API, Vercel Serverless Functions
+- **Database:** Google Cloud Firestore (Always-on, multi-region NoSQL)
+- **Authentication:** Firebase Auth (Email/Password & Google Sign-In with auto-session persistence)
+- **AI & Integrations:** Google Gemini AI (GenAI SDK), Google Calendar Public API (Indian Holiday Engine)
+- **Hosting:** Vercel (Edge CDN & Serverless Python Runtime)
 
 ---
 
 ## 🔐 Security
 
-- **Environment Isolation:** All API keys and secrets are managed via environment variables and are never committed to the repository.
-- **Data Privacy:** Multi-tenant architecture ensures every user's data is strictly isolated by `user_id` at the database query level.
-- **Authentication:** Firebase ID tokens are securely verified server-side on every authenticated request.
+- **Environment Isolation:** All sensitive keys (Firebase Admin credentials, Gemini API tokens) are managed securely via Vercel Environment Variables.
+- **Data Isolation:** User sub-collections (`users/{uid}/products`, `users/{uid}/sales`, etc.) ensure complete data isolation between accounts.
+- **Token Verification:** Every API request verifies cryptographic Firebase ID tokens before resolving data.
 
 ---
 
@@ -79,37 +68,37 @@ Every user's data is completely isolated. Sign in with email or Google. Onboardi
 
 ```text
 ProfitPilot/
-├── backend/                  # Python Flask server & AI logic
-│   ├── routes/               # API blueprints (billing, inventory, tax, auth, etc.)
-│   ├── services/             # AI engine, festival algorithms, chatbot
-│   └── auth_middleware.py    # Firebase token verification
-├── frontend/                 # PWA frontend (HTML, CSS, JS)
-│   ├── css/                  # Responsive styles & design system
-│   └── js/                   # API controllers, auth guards, feature modules
+├── api/
+│   └── index.py              # Vercel Serverless WSGI entry-point
+├── backend/                  # Flask REST API & Core Intelligence
+│   ├── routes/               # Modular API blueprints (inventory, billing, tax, auth, etc.)
+│   ├── services/             # AI engine, festival matcher, chatbot, CSV ingest
+│   ├── auth_middleware.py    # Firebase token & admin SDK management
+│   ├── firestore_db.py       # Firestore database adapter & aggregation layer
+│   └── config.py             # GST rates, tax slabs, festival lookups
+├── frontend/                 # PWA Client
+│   ├── css/                  # Styling & design system
+│   ├── js/                   # Controllers, auth guards, charts, API adapters
+│   └── *.html                # Single-page interface views
 ├── .env.example              # Environment variables template
-├── vercel.json               # Deployment configuration
+├── vercel.json               # Serverless routing & static asset configuration
 └── requirements.txt          # Python dependencies
 ```
 
 ---
 
-## 🧑‍💻 Local Setup (Developers Only)
-
-> ⚠️ **IMPORTANT WARNING FOR DEVELOPERS**
-> Local execution provides a **highly limited, development-only experience**. 
-> Without configuring external API keys (Firebase, Google AI, Google Calendar), the application defaults to a "Demo Mode" where authentication is bypassed, data is shared, and AI features fall back to static responses.
+## 🧑‍💻 Local Development
 
 ### Prerequisites
-- Python 3.8 or higher
-- Git
-- A modern browser
+- Python 3.10+
+- A Firebase project with Cloud Firestore and Authentication enabled
 
 ### Setup Guide
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/bhvyavaish/profitpilot.git
-   cd profitpilot
+   git clone https://github.com/BhvyaVaish/ProfitPilot.git
+   cd ProfitPilot
    ```
 
 2. **Create a Virtual Environment & Install Dependencies**
@@ -118,7 +107,7 @@ ProfitPilot/
    python -m venv .venv
    .\.venv\Scripts\activate
    pip install -r requirements.txt
-   
+
    # macOS / Linux
    python3 -m venv .venv
    source .venv/bin/activate
@@ -127,44 +116,31 @@ ProfitPilot/
 
 3. **Configure Environment Variables**
    ```bash
-   # Windows: copy .env.example .env
-   # macOS/Linux: cp .env.example .env
+   # Copy template
+   copy .env.example .env     # Windows
+   cp .env.example .env       # macOS / Linux
    ```
-   *Open `.env` and fill in the required keys. See `.env.example` for details.*
+   *Place your `firebase-service-account.json` in `backend/` and populate Firebase client variables in `.env`.*
 
-4. **Run the Server**
+4. **Start the Server**
    ```bash
    python backend/app.py
    ```
-   *Open your browser at: `http://localhost:5000`*
-
-### Troubleshooting
-- **`Permission Denied` (Windows PowerShell):** Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` as Administrator.
-- **Port 5000 in use:** Edit `backend/app.py` and change `port=5000` to `port=5001`.
-- **Database Reset:** Delete the `backend/profitpilot.db` file to start fresh.
+   *Navigate to `http://localhost:5000` in your browser.*
 
 ---
 
-## ⚡ Offline Capabilities (PWA)
+## ⚡ Progressive Web App (PWA)
 
-ProfitPilot is installable as a Progressive Web App (PWA) directly from the browser.
+ProfitPilot is installable as a native-feeling app on mobile and desktop:
 
-| Feature                             | Offline Available     |
-| ----------------------------------- | --------------------- |
-| Viewing app UI and last-synced data | ✅ Yes (PWA cache)    |
-| Language switching (EN / HI)        | ✅ Yes (runs locally) |
-| Tooltips and UI interactions        | ✅ Yes                |
-| Generating a new bill               | ❌ Requires internet  |
-| Adding / editing inventory          | ❌ Requires internet  |
-| AI insights & health score          | ❌ Requires internet  |
-| Logging in                          | ❌ Requires internet  |
-
----
-
-## 📎 Links
-
-- **Live App:** [profitpilot.vercel.app](https://profitpilotio.vercel.app/)
-- **GitHub:** [github.com/bhvyavaish/ProfitPilot](https://github.com/bhvyavaish/ProfitPilot)
+| Capability | PWA Support |
+| :--- | :--- |
+| App Shell & Static Assets | ✅ Fully cached for instant loading |
+| Bilingual Interface (EN / HI) | ✅ Instant client-side switching |
+| Tooltips & Explanations | ✅ Offline accessible |
+| Live Inventory & Billing Sync | ☁️ Real-time Cloud Firestore sync |
+| AI Recommendations & Tax Engine | ☁️ Real-time cloud computation |
 
 ---
 
