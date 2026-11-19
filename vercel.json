@@ -11,10 +11,35 @@
     }
   ],
   "routes": [
+    {
+      "src": "/(.*)",
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://*.googleusercontent.com https://lh3.googleusercontent.com; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com; frame-src https://*.firebaseapp.com; frame-ancestors 'none'; object-src 'none'; base-uri 'self';",
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()"
+      },
+      "continue": true
+    },
+    {
+      "src": "/(css|js|img)/(.*)",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      },
+      "continue": true
+    },
     { "src": "/api/(.*)", "dest": "api/index.py" },
     { "src": "/js/(.*)", "dest": "frontend/js/$1" },
     { "src": "/css/(.*)", "dest": "frontend/css/$1" },
     { "src": "/img/(.*)", "dest": "frontend/img/$1" },
+    { "src": "/robots\\.txt", "dest": "frontend/robots.txt" },
+    { "src": "/sitemap\\.xml", "dest": "frontend/sitemap.xml" },
+    { "src": "/\\.well-known/security\\.txt", "dest": "frontend/.well-known/security.txt" },
+    { "src": "/llms\\.txt", "dest": "frontend/llms.txt" },
+    { "src": "/icon-192\\.png", "dest": "frontend/icon-192.png" },
+    { "src": "/icon-512\\.png", "dest": "frontend/icon-512.png" },
     { "src": "/manifest\\.json", "dest": "frontend/manifest.json" },
     { "src": "/sw\\.js", "dest": "frontend/sw.js" },
     { "src": "/favicon\\.png", "dest": "frontend/favicon.png" },
@@ -24,7 +49,7 @@
     { "src": "/landing$", "dest": "frontend/landing.html" },
     { "src": "/app\\.html$", "dest": "frontend/app.html" },
     { "src": "/app$", "dest": "frontend/app.html" },
-    { "src": "/(index|dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)\\.html$", "dest": "frontend/$1.html" },
+    { "src": "/(index|dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile|404)\\.html$", "dest": "frontend/$1.html" },
     { "src": "/(dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)$", "dest": "frontend/$1.html" },
     { "src": "^/$", "dest": "frontend/landing.html" }
   ]

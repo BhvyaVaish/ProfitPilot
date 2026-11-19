@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Sign in or create your ProfitPilot account - AI-Driven Retail Management for MSMEs.">
-  <title>ProfitPilot - Sign In</title>
+  <title>Sign In &amp; Register — ProfitPilot by Bhvya Vaish</title>
+  <link rel="canonical" href="https://profitpilotio.vercel.app/auth">
   <link rel="icon" type="image/png" href="favicon.png">
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
@@ -43,12 +44,12 @@
         <!-- Sign In Form -->
         <form id="signin-form" onsubmit="handleSignIn(event)">
           <div class="auth-field">
-            <label>Email Address</label>
-            <input type="email" class="auth-input" id="signin-email" placeholder="you@business.com" required>
+            <label for="signin-email">Email Address</label>
+            <input type="email" class="auth-input" id="signin-email" name="email" autocomplete="email" placeholder="you@business.com" required>
           </div>
           <div class="auth-field">
-            <label>Password</label>
-            <input type="password" class="auth-input" id="signin-password" placeholder="Enter your password" required>
+            <label for="signin-password">Password</label>
+            <input type="password" class="auth-input" id="signin-password" name="password" autocomplete="current-password" placeholder="Enter your password" required>
           </div>
           <div style="text-align:right; margin-bottom:18px;">
             <span class="auth-link" onclick="handleForgotPassword()">Forgot Password?</span>
@@ -59,20 +60,20 @@
         <!-- Sign Up Form -->
         <form id="signup-form" style="display:none;" onsubmit="handleSignUp(event)">
           <div class="auth-field">
-            <label>Full Name</label>
-            <input type="text" class="auth-input" id="signup-name" placeholder="Your full name" required>
+            <label for="signup-name">Full Name</label>
+            <input type="text" class="auth-input" id="signup-name" name="name" autocomplete="name" placeholder="Your full name" required>
           </div>
           <div class="auth-field">
-            <label>Email Address</label>
-            <input type="email" class="auth-input" id="signup-email" placeholder="you@business.com" required>
+            <label for="signup-email">Email Address</label>
+            <input type="email" class="auth-input" id="signup-email" name="email" autocomplete="email" placeholder="you@business.com" required>
           </div>
           <div class="auth-field">
-            <label>Password</label>
-            <input type="password" class="auth-input" id="signup-password" placeholder="Min 6 characters" required minlength="6">
+            <label for="signup-password">Password</label>
+            <input type="password" class="auth-input" id="signup-password" name="password" autocomplete="new-password" placeholder="Min 6 characters" required minlength="6">
           </div>
           <div class="auth-field">
-            <label>Confirm Password</label>
-            <input type="password" class="auth-input" id="signup-confirm" placeholder="Re-enter password" required minlength="6">
+            <label for="signup-confirm">Confirm Password</label>
+            <input type="password" class="auth-input" id="signup-confirm" name="confirm-password" autocomplete="new-password" placeholder="Re-enter password" required minlength="6">
           </div>
           <button type="submit" class="auth-btn auth-btn-primary" id="signup-btn" disabled>Connecting to Server...</button>
         </form>

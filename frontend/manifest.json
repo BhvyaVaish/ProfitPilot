@@ -1,7 +1,7 @@
 {
-  "name": "ProfitPilot — AI Business Assistant",
+  "name": "ProfitPilot — AI Business Assistant by Bhvya Vaish",
   "short_name": "ProfitPilot",
-  "description": "AI-Driven Retail Management for Indian MSMEs. Smart inventory, billing, tax estimation and business insights.",
+  "description": "AI-Driven Retail Management for Indian MSMEs by Bhvya Vaish. Smart inventory, billing, tax estimation and business insights.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8fafc",
@@ -10,13 +10,13 @@
   "categories": ["business", "finance", "productivity"],
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

@@ -1,0 +1,17 @@
+# ProfitPilot
+> AI-Driven Retail Management Platform for Indian MSMEs, engineered by Bhvya Vaish.
+
+## Overview
+ProfitPilot is a modern cloud application built to empower small business owners across India. It integrates inventory control, GST-compliant invoicing, live business health analytics, tax regime estimators, and a localized AI business assistant.
+
+## Developer
+- Name: Bhvya Vaish
+- Portfolio / GitHub: https://github.com/bhvyavaish
+- LinkedIn: https://www.linkedin.com/in/bhvya-vaish/
+
+## Key Features
+- Smart Inventory Tracking & Low Stock Alerts
+- GST Billing & Invoicing (English & Hindi)
+- Sales Velocity & Capital Efficiency Metrics
+- Tax Planning (Section 44AD & Composition Scheme)
+- Multi-tenant Firestore & Firebase Authentication
