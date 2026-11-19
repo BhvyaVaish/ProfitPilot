@@ -9,7 +9,7 @@
 - **Engineer:** [Bhvya Vaish](https://github.com/bhvyavaish)
 - **LinkedIn:** [Bhvya Vaish on LinkedIn](https://www.linkedin.com/in/bhvya-vaish/)
 - **Repository:** [ProfitPilot GitHub Repo](https://github.com/BhvyaVaish/ProfitPilot)
-- **Contact:** [bhvyavaish1@gmail.com](mailto:bhvyavaish1@gmail.com)
+- **Contact:** [bhvya.vaish@gmail.com](mailto:bhvya.vaish@gmail.com)
 
 ## Site Architecture & Endpoints
 - [Home & Landing Page](https://profitpilotio.vercel.app/)

@@ -6,6 +6,7 @@ ProfitPilot is a modern cloud application built to empower small business owners
 
 ## Developer & Portfolio
 - Name: [Bhvya Vaish](https://github.com/bhvyavaish)
+- Email: [bhvya.vaish@gmail.com](mailto:bhvya.vaish@gmail.com)
 - GitHub Profile: [https://github.com/bhvyavaish](https://github.com/bhvyavaish)
 - LinkedIn: [https://www.linkedin.com/in/bhvya-vaish/](https://www.linkedin.com/in/bhvya-vaish/)
 - Project Repository: [https://github.com/BhvyaVaish/ProfitPilot](https://github.com/BhvyaVaish/ProfitPilot)
