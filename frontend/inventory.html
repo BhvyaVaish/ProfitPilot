@@ -3,10 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="ProfitPilot Inventory Management - Manage stock, restock products, and track inventory for your MSME business.">
+  <meta name="description" content="ProfitPilot Smart Inventory Management by Bhvya Vaish: Track stock levels, forecast restock dates, avoid stockouts, and manage your product catalog.">
+  <meta name="keywords" content="Bhvya Vaish, ProfitPilot inventory, MSME inventory management, stock tracking India, Kirana inventory software, restock forecast, out of stock alerts, retail POS inventory">
   <title>Inventory Management — ProfitPilot by Bhvya Vaish</title>
   <link rel="canonical" href="https://profitpilotio.vercel.app/inventory">
   <link rel="icon" type="image/png" href="favicon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Inventory Management — ProfitPilot by Bhvya Vaish">
+  <meta property="og:description" content="Track stock levels, forecast restock dates, avoid stockouts, and manage your retail product catalog with ProfitPilot.">
+  <meta property="og:url" content="https://profitpilotio.vercel.app/inventory">
+  <meta property="og:image" content="https://profitpilotio.vercel.app/icon-512.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Inventory Management — ProfitPilot by Bhvya Vaish">
+  <meta name="twitter:description" content="Track stock levels, forecast restock dates, avoid stockouts, and manage your retail product catalog with ProfitPilot.">
+  <meta name="twitter:image" content="https://profitpilotio.vercel.app/icon-512.png">
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#2563eb">
@@ -171,7 +181,7 @@
           <button class="chip" onclick="setFilter('low', this)">Low Stock</button>
           <button class="chip" onclick="setFilter('out', this)">Out of Stock</button>
         </div>
-        <input type="text" id="search-inv" class="input-control" placeholder="Search..." style="max-width:250px;">
+        <input type="text" id="search-inv" class="input-control" aria-label="Search products by name or category" placeholder="Search..." style="max-width:250px;">
       </div>
 
       <!-- Inventory Table -->

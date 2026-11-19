@@ -38,6 +38,7 @@
     { "src": "/sitemap\\.xml", "dest": "frontend/sitemap.xml" },
     { "src": "/\\.well-known/security\\.txt", "dest": "frontend/.well-known/security.txt" },
     { "src": "/llms\\.txt", "dest": "frontend/llms.txt" },
+    { "src": "/AGENTS\\.md", "dest": "frontend/AGENTS.md" },
     { "src": "/icon-192\\.png", "dest": "frontend/icon-192.png" },
     { "src": "/icon-512\\.png", "dest": "frontend/icon-512.png" },
     { "src": "/manifest\\.json", "dest": "frontend/manifest.json" },
@@ -49,8 +50,8 @@
     { "src": "/landing$", "dest": "frontend/landing.html" },
     { "src": "/app\\.html$", "dest": "frontend/app.html" },
     { "src": "/app$", "dest": "frontend/app.html" },
-    { "src": "/(index|dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile|404)\\.html$", "dest": "frontend/$1.html" },
-    { "src": "/(dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile)$", "dest": "frontend/$1.html" },
+    { "src": "/(index|dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile|privacy|contact|404)\\.html$", "dest": "frontend/$1.html" },
+    { "src": "/(dashboard|inventory|billing|tax|chatbot|about|auth|onboarding|profile|privacy|contact)$", "dest": "frontend/$1.html" },
     { "src": "^/$", "dest": "frontend/landing.html" }
   ]
 }

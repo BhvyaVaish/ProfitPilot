@@ -1,17 +1,21 @@
-# ProfitPilot
-> AI-Driven Retail Management Platform for Indian MSMEs, engineered by Bhvya Vaish.
+# [ProfitPilot](https://profitpilotio.vercel.app/)
+> AI-Driven Retail Management Platform for Indian MSMEs, engineered by [Bhvya Vaish](https://github.com/bhvyavaish).
 
 ## Overview
 ProfitPilot is a modern cloud application built to empower small business owners across India. It integrates inventory control, GST-compliant invoicing, live business health analytics, tax regime estimators, and a localized AI business assistant.
 
-## Developer
-- Name: Bhvya Vaish
-- Portfolio / GitHub: https://github.com/bhvyavaish
-- LinkedIn: https://www.linkedin.com/in/bhvya-vaish/
+## Developer & Portfolio
+- Name: [Bhvya Vaish](https://github.com/bhvyavaish)
+- GitHub Profile: [https://github.com/bhvyavaish](https://github.com/bhvyavaish)
+- LinkedIn: [https://www.linkedin.com/in/bhvya-vaish/](https://www.linkedin.com/in/bhvya-vaish/)
+- Project Repository: [https://github.com/BhvyaVaish/ProfitPilot](https://github.com/BhvyaVaish/ProfitPilot)
 
-## Key Features
-- Smart Inventory Tracking & Low Stock Alerts
-- GST Billing & Invoicing (English & Hindi)
-- Sales Velocity & Capital Efficiency Metrics
-- Tax Planning (Section 44AD & Composition Scheme)
-- Multi-tenant Firestore & Firebase Authentication
+## Core Capabilities
+- [Smart Inventory Tracking & Low Stock Alerts](https://profitpilotio.vercel.app/inventory)
+- [GST Billing & Invoicing](https://profitpilotio.vercel.app/billing)
+- [Sales Velocity & Business Health Score](https://profitpilotio.vercel.app/dashboard)
+- [MSME Tax Planning & Section 44AD Estimator](https://profitpilotio.vercel.app/tax)
+- [Bilingual AI Business Assistant](https://profitpilotio.vercel.app/chatbot)
+- [About Creator](https://profitpilotio.vercel.app/about)
+- [Contact Support](https://profitpilotio.vercel.app/contact)
+- [Privacy Policy](https://profitpilotio.vercel.app/privacy)
