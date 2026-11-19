@@ -176,7 +176,7 @@
 
       <!-- Inventory Table -->
       <div class="table-container">
-        <table>
+        <table aria-label="Product Inventory List">
           <thead>
             <tr>
               <th>Product</th>
@@ -211,11 +211,11 @@
       <h3 class="mb-2">Add New Product</h3>
       <div id="add-error" style="display:none; background:rgba(239,68,68,0.08); color:var(--accent-red); padding:10px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.88rem;"></div>
       <form id="add-form" autocomplete="off">
-        <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Product Name</label>
+        <label for="p-name" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Product Name</label>
         <input type="text" id="p-name" class="input-control mb-1" placeholder="e.g. Tata Salt 1kg" required>
 
-        <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Category</label>
-        <select id="p-category" class="input-control mb-1">
+        <label for="p-category" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Category</label>
+        <select id="p-category" class="input-control mb-1" aria-label="Product Category">
           <option value="grocery">Grocery</option>
           <option value="fmcg">FMCG</option>
           <option value="packaged_food">Packaged Food</option>
@@ -239,11 +239,11 @@
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
           <div>
-            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Price (Rs.)</label>
+            <label for="p-price" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Price (Rs.)</label>
             <input type="number" id="p-price" class="input-control" placeholder="0.00" step="0.01" min="0.01" required>
           </div>
           <div>
-            <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Initial Stock</label>
+            <label for="p-stock" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Initial Stock</label>
             <input type="number" id="p-stock" class="input-control" placeholder="0" min="0" required>
           </div>
         </div>
@@ -261,9 +261,9 @@
     <div class="modal">
       <h3 class="mb-2">Add Stock</h3>
       <div id="restock-error" style="display:none; background:rgba(239,68,68,0.08); color:var(--accent-red); padding:10px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.88rem;"></div>
-      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Select Product</label>
-      <select id="restock-select" class="input-control mb-1"></select>
-      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Quantity to Add</label>
+      <label for="restock-select" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Select Product</label>
+      <select id="restock-select" class="input-control mb-1" aria-label="Select Product to Restock"></select>
+      <label for="restock-qty" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Quantity to Add</label>
       <input type="number" id="restock-qty" class="input-control mb-2" placeholder="e.g. 50" min="1">
       <div style="display:flex; gap:10px;">
         <button class="btn" onclick="closeRestockModal()" style="flex:1;">Cancel</button>
@@ -278,10 +278,10 @@
       <h3 class="mb-2">Edit Product</h3>
       <div id="edit-error" style="display:none; background:rgba(239,68,68,0.08); color:var(--accent-red); padding:10px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:0.88rem;"></div>
       <input type="hidden" id="edit-id">
-      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Product Name</label>
+      <label for="edit-name" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Product Name</label>
       <input type="text" id="edit-name" class="input-control mb-1">
-      <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Category</label>
-      <select id="edit-category" class="input-control mb-1">
+      <label for="edit-category" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Category</label>
+      <select id="edit-category" class="input-control mb-1" aria-label="Edit Product Category">
         <option value="grocery">Grocery</option>
         <option value="fmcg">FMCG</option>
         <option value="packaged_food">Packaged Food</option>
@@ -304,16 +304,16 @@
       </select>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div>
-          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Selling Price (Rs.)</label>
+          <label for="edit-price" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Selling Price (Rs.)</label>
           <input type="number" id="edit-price" class="input-control" step="0.01">
         </div>
         <div>
-          <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Stock</label>
+          <label for="edit-stock" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Stock</label>
           <input type="number" id="edit-stock" class="input-control" min="0">
         </div>
       </div>
       <div style="margin-top:10px;">
-        <label style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Cost Price (Rs.) <span style="font-weight:400; font-size:0.76rem; color:var(--text-muted);">— optional</span></label>
+        <label for="edit-cost-price" style="font-size:0.82rem; font-weight:600; color:var(--text-muted); margin-bottom:3px; display:block;">Cost Price (Rs.) <span style="font-weight:400; font-size:0.76rem; color:var(--text-muted);">— optional</span></label>
         <input type="number" id="edit-cost-price" class="input-control" step="0.01" min="0" placeholder="Leave blank for default (70% of selling price)">
         <div id="edit-cost-hint" style="font-size:0.76rem; color:var(--text-muted); margin-top:3px;">Default: 70% of selling price is used for profit calculations if not set.</div>
       </div>
