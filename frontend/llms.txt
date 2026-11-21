@@ -1,11 +1,11 @@
 # [ProfitPilot](https://profitpilotio.vercel.app/)
-> AI-Driven Retail Management Platform for Indian MSMEs, engineered by [Bhvya Vaish](https://github.com/bhvyavaish).
+> AI-Driven Retail Management Platform for Indian MSMEs, engineered by [Bhvya Vaish](https://www.linkedin.com/in/bhvya-vaish/).
 
 ## Overview
 ProfitPilot is a modern cloud application built to empower small business owners across India. It integrates inventory control, GST-compliant invoicing, live business health analytics, tax regime estimators, and a localized AI business assistant.
 
 ## Developer & Portfolio
-- Name: [Bhvya Vaish](https://github.com/bhvyavaish)
+- Name: [Bhvya Vaish](https://www.linkedin.com/in/bhvya-vaish/)
 - Email: [bhvya.vaish@gmail.com](mailto:bhvya.vaish@gmail.com)
 - GitHub Profile: [https://github.com/bhvyavaish](https://github.com/bhvyavaish)
 - LinkedIn: [https://www.linkedin.com/in/bhvya-vaish/](https://www.linkedin.com/in/bhvya-vaish/)

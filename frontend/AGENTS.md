@@ -6,7 +6,7 @@
 [ProfitPilot](https://profitpilotio.vercel.app/) is a free, AI-driven business intelligence and retail management platform built for Indian Micro, Small, and Medium Enterprises (MSMEs). It integrates inventory tracking, GST-compliant invoicing, business health scoring, tax regime estimation (FY 2025-26, Section 44AD), and an AI business assistant.
 
 ## Creator & Maintainer
-- **Engineer:** [Bhvya Vaish](https://github.com/bhvyavaish)
+- **Engineer:** [Bhvya Vaish](https://www.linkedin.com/in/bhvya-vaish/)
 - **LinkedIn:** [Bhvya Vaish on LinkedIn](https://www.linkedin.com/in/bhvya-vaish/)
 - **Repository:** [ProfitPilot GitHub Repo](https://github.com/BhvyaVaish/ProfitPilot)
 - **Contact:** [bhvya.vaish@gmail.com](mailto:bhvya.vaish@gmail.com)
